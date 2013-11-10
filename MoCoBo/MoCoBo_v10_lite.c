@@ -402,6 +402,12 @@ void manmode(void){
 		
         break;
       }
+	case 'X':
+	{
+		//Upate the PWM signals
+		Update_PWMs();
+		break;
+	}
     case 27:
       {
         return;
@@ -413,9 +419,6 @@ void manmode(void){
         break;
       }
     }
-
-	//Upate the PWM signals
-	Update_PWMs();
   }
   return;
 }
