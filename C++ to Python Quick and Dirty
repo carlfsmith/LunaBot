@@ -1,0 +1,120 @@
+                      C++ to Python Quick Start Guide
+A # replaces // for a single line comment. There are no multiple line comments like /* */.
+
+
+Library files vs. Modules:
+
+  	  C++:      		  Python:
+#include <math.h>	  import math
+
+
+Declaring variables:
+
+  C++:          			    Python:
+int x = 5;			          x = 5
+float y = 5.0;			      y = 5.0
+bool on = true;			      on = True
+string name = “Alex”;		  name = “Alex”
+int data[] = {3, 1, 4};		data = (3, 1, 4)
+
+Array elements are access through the same notation.
+
+Also worth noting, Python has a built in list type that is similar to std::vector the notation is shown below these can be extremely useful:
+
+list = []	#empty list
+list.append(5)	#add item to end
+list.append(“Bob”)
+num = list[0]
+name = list.[1]
+print list.pop()
+
+
+Screen I\O:
+
+C++:		Python:
+cout << “hello\n”;	print “hello”
+cin >> name		name = raw_input()
+cin >> num		num = int(raw_input())
+
+There is probably a better way to read numbers;
+I just don’t know how. :/
+
+
+if statements and Boolean stuff:
+
+C++:		      Python:
+true			    True
+false			    False
+if( true )		if True:
+if(x && y)		if x and y:
+if(x || y)		if x or y:
+if(!x)			  if not x:
+if(x != y)		if x is not y:
+
+<=, >=, !=, and ==  work and mean the same in both.
+
+
+A note about code blocks:
+
+    C++:		          Python:
+if(expression)		    if expression:
+{			                  //if expression
+    //if expression	    //is true
+    //is true		      //Always executes
+}
+//Always executes
+
+Blocks of code are marked by indentation.
+Common notation is 4 spaces or 1 tab. These cannot be mixed in a file
+
+
+while loops:
+
+      	C++:		      Python:
+while(expression)	  while expression:
+{}
+
+
+for loops in Python are quite different than in C++. The syntax is shown below:
+
+	for i in list:
+     print i
+
+This is the only version of a for loop that exists in Python equivalent C++ code would be:
+
+  for(int i = 0; i < ARRAY_SIZE; i++)
+       cout << array[i] << endl;
+
+If you have a number instead of a list use the range() function, it returns a list the same size as the integer passed to it. For example, range(3) would return [0, 1, 2]
+
+
+Functions:
+
+    	C++:       		Python:
+int add_2(int x)    def add_2(x):
+{           			    return  x + 2
+    return x + 2;
+}
+
+You don’t have to specify the type of parameters a function expects in Python i.e. no int, float, or bool.
+
+
+Classes:
+In Python everything is public, there is no private or protected parts to a class. The variable self allows access to the class’ members similar to the this pointer in C++. self must be the first parameter in all class functions.
+
+        C++:        						Python:
+class Bob : public Parent			class Bob(Parent):
+{						                    def __init__(self):
+    Bob();						            #constructor
+    string get_name();				  def get_name(self):
+    ~Bob();						            return self.name
+};              						    def __del__(self):
+							                    #destructor
+
+None is similar to null. For example, If the creation of an instance of a class failed the variable will be equal to None. This can be tested for by the following if statement:
+
+if object is None:
+    print “Failed to create object”
+
+
+This is by no means an exhaustive list if the differences between C++ and Python, but this should be enough to get to a point where analogies can be drawn. The Python API is located at http://docs.python.org/2/library/. If you want to install Python and are curious about the versions, I currently run Python 2.7 on Windows 7 64-bit.
