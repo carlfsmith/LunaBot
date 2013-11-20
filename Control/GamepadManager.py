@@ -3,9 +3,9 @@
 # Purpose:	Look for all available joysticks and/or gampads and
 #			make them easy to access. Also allows for testing
 #			gamepads if run individually through calling _main()
-# Date:		11/6/13
+# Date:		11/20/13
 # Note:		This is based on joystick_example.py which I found
-#			on the pygame website.
+#			here http://www.pygame.org/wiki/Joystick_analyzer
 #---------------------------------------------------------------
 
 import pygame
@@ -38,6 +38,22 @@ class GamepadManager:
 		print self.stick_names
 		
 		self.db = db
+
+	#scans for new joysticks/gamepads and replaces the old instances
+	#return:	number of joysticks/gamepads found
+	def search(self):
+		pygame.joystick.quit()
+		pygame.joystick.init()
+		
+		self.sticks = []		#clear old list of joysticks/gamepads
+		self.stick_names = []
+		
+		for i in range(0, pygame.joystick.get_count()):
+			self.sticks.append(pygame.joystick.Joystick(i))
+			self.stick_names.append(self.sticks[i].get_name())
+			self.sticks[i].init()
+			
+		return len(self.sticks)
 	
 	#return the number of gamepads/joysticks that have been found
 	#return:	number of sticks that have been found
@@ -62,6 +78,10 @@ class GamepadManager:
 			return self.stick_names
 		elif id < self.get_num_sticks():
 			return self.stick_names[id]
+	
+	#needs to be called as often as updates for a gamepad/joystick are needed
+	def update_events(self):
+		pygame.event.get()
 	
 	#get the value of one of the axis
 	#axis_num: 	id # of the axis desired
