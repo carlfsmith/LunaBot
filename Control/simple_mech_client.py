@@ -1,11 +1,11 @@
-# -----------------------
+# ---------------------------------------------------------
 # Author:	Alex Anderson
 # Purpose:	Send commands to server on robot
-#			with IP address of self.HOST based 
-#			on the activity of the hat/D-pad of
-#			a joystick/gamepad
+#			based on the activity of a joystick/gamepad
 # Date:		11/20/13
-# ---------------------------
+# Note:		Information is sent as ? where ? is a single
+#			ASCII character
+# ---------------------------------------------------------
 
 import socket
 from gamepad_manager import *	#gampad_manager must be in the same directory as this script
@@ -14,8 +14,10 @@ from gamepad_manager import *	#gampad_manager must be in the same directory as t
 #sends the appropriate signals to the
 #robot with the Robot_Client class
 class Robot_Commander:
-	def __init__(self, port=3612):
-		self.bot_link = Robot_Client(port)
+	#host:	IP address of robot
+	#port:	port that data will be sent to
+	def __init__(self, host="localhost", port=3612):
+		self.bot_link = Robot_Client(host, port)
 		self.bot_link.connect()
 		
 		self.drive_direction = Drive_Signals()
@@ -27,6 +29,10 @@ class Robot_Commander:
 			self.drive_direction = direction
 			self.bot_link.send_command(str(direction))
 
+	def stop(self):
+		self.bot_link.send_command(" ")
+	
+	#where it all comes together
 	def main(self):
 		num_sticks = self.gm.get_num_sticks()
 		
@@ -65,6 +71,7 @@ class Robot_Commander:
 			hat_vect = self.gm.get_hat(0, stk_id)
 			if hat_vect == (0,0):	#stop
 				drive_dir = Drive_Signals.STOP
+			#	Straight lines
 			elif hat_vect == (0,1):	#forward
 				drive_dir = Drive_Signals.FORWARD
 			elif hat_vect == (0,-1):	#backward
@@ -73,8 +80,26 @@ class Robot_Commander:
 				drive_dir = Drive_Signals.RIGHT
 			elif hat_vect == (-1,0):	#left
 				drive_dir = Drive_Signals.LEFT
-						
+			#	Diagonal lines
+			elif hat_vect == (-1,1):	#front left
+				drive_dir = Drive_Signals.FL
+			elif hat_vect == (1,1):	#front right
+				drive_dir = Drive_Signals.FR
+			elif hat_vect == (1,-1):	#back left
+				drive_dir = Drive_Signals.BL
+			elif hat_vect == (-1,-1):	#back right
+				drive_dir = Drive_Signals.BR
+			
+			#Rotate
+			if self.gm.get_button(4, stk_id) == True:
+				drive_dir = Drive_Signals.CCW
+			elif self.gm.get_button(5, stk_id) == True:
+				drive_dir = Drive_Signals.CW
+			
+			#stop the robot and disconnect from the robot
 			if self.gm.get_button(6, stk_id) == True and self.gm.get_button(7, stk_id) == True:
+				self.bot_link.disconnect()
+				self.stop()
 				break
 			
 			self.drive(drive_dir)
@@ -84,8 +109,8 @@ class Robot_Commander:
 
 #  Creates/Maintains connection with server on robot		
 class Robot_Client:
-	def __init__(self, port=3612):
-		self.HOST = 'localhost'	#IP address of robot/server
+	def __init__(self, host="localhost", port=3612):
+		self.HOST = host	#IP address of robot/server
 		self.PORT = port
 		self.SIZE = 1024
 		
@@ -117,7 +142,7 @@ class Robot_Client:
 		#Closes the connection with the robot
 		print "Disconnecting...",
 		if self.robot_connected == True:
-			self.socket.send("Take the highway")
+			self.socket.send("take the highway")
 			self.socket.close()
 			self.robot_connected = False
 		
@@ -126,14 +151,23 @@ class Robot_Client:
 #  Contains variables which hold the signals
 #to be sent to the robot for drive direction
 class Drive_Signals:
-	STOP = 'Z'
+	#Drive Directions
+	STOP = ' '
 	FORWARD = 'W'
 	BACKWARD = 'S'
 	LEFT = 'A'
 	RIGHT = 'D'
+	FL = 'Q'
+	FR = 'E'
+	BL = 'C'
+	BR = 'Z'
+	
+	#Turning
+	CW = 'V'
+	CCW = 'R'
 
 #  Only perform this if execution
 #started in this script
 if __name__ == "__main__":
-	rc = Robot_Commander(3612)
+	rc = Robot_Commander()
 	rc.main()
