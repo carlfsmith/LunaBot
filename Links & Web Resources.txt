@@ -1,0 +1,3 @@
+Simply a file to stick links for anything we find useful for the project all in one place.
+
+Basic CAN controller information: http://microcontroller.com/learn-embedded/CAN1_sie/CAN1big.htm
