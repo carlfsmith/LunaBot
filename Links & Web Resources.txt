@@ -1,3 +1,10 @@
 Simply a file to stick links for anything we find useful for the project all in one place.
 
 Basic CAN controller information: http://microcontroller.com/learn-embedded/CAN1_sie/CAN1big.htm
+
+Arduino & IMU information: http://forum.arduino.cc/index.php?topic=76023.0
+
+IR Datasheet & Code Snippets: https://www.sparkfun.com/products/8958
+
+IR & Arduino Project: http://arduinomega.blogspot.com/2011/05/infrared-long-range-sensor-gift-of.html
+
