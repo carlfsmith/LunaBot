@@ -1,11 +1,7 @@
-//Creates and maintains a TCP Server
-//at a given port
+package server;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -40,8 +36,6 @@ class TCPServer
     {
         if(toClient != null)
             toClient.writeBytes(msg);
-
-        //throw new IOException("TCPServer.toClient is null");
     }
 
     public String getMessage() throws IOException
@@ -50,6 +44,35 @@ class TCPServer
             return fromClient.readLine();
 
         throw new IOException("TCPServer.fromClient is null");
+    }
+
+    public void writeCSVFile(String file_name) throws IOException
+    {
+        File f;
+        if(file_name.endsWith(".csv"))
+            f = new File(file_name);
+        else
+            f = new File(file_name + ".csv");
+
+        BufferedWriter file = new BufferedWriter( new FileWriter( f.getAbsoluteFile() ) );
+
+        final String end = "eliFVSC";
+        String msg = "";
+
+        while(true)
+        {
+            msg = getMessage();
+            if(!msg.equalsIgnoreCase(end))
+            {
+                System.out.println(msg);
+                file.write(msg);
+                file.newLine();
+            }
+            else
+                break;  //exit loop when the end string has been received
+        }
+
+        file.flush();
     }
 
     public void disconnectClient() throws IOException

@@ -1,12 +1,13 @@
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.Socket;
+package csv;
 
+import java.io.IOException;
+
+/**
+ * Created by Alex on 2/6/14.
+ */
 public class CSV_Main
 {
-    public static void main(String argv[]) throws Exception
+    public static void main(String[] args) throws IOException
     {
         CSVFormat format = new CSVFormat();
         format.addItem("Value");
@@ -33,5 +34,4 @@ public class CSV_Main
         file.writeRecord(record);
         file.writeRecord(bla);
     }
-
 }

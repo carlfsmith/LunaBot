@@ -6,6 +6,8 @@
  *          before it begins accepting values.
  */
 
+package csv;
+
 public class CSVRecord
 {
     public CSVRecord(){}

@@ -6,6 +6,8 @@
  *  Date: 2/5/14
  */
 
+package csv;
+
 import java.util.ArrayList;
 
 public class CSVFormat

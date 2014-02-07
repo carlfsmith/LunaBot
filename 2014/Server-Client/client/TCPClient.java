@@ -11,10 +11,9 @@
  *  Date: 2/5/14
  */
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+package client;
+
+import java.io.*;
 import java.net.Socket;
 
 class TCPClient
@@ -67,6 +66,34 @@ class TCPClient
         }
 
         return false;
+    }
+
+    public void sendFile(String file_name) throws IOException
+    {
+        //Attempt to open file return false if unsuccessful
+        File file = new File(file_name);
+        BufferedReader fileRead = new BufferedReader(new FileReader(file));
+        System.out.println("Attempting to send file: " + file_name);
+
+        sendMessage("File");  //Signal that we are about to send a file
+
+        while(file.exists() && !file.isDirectory())
+        {
+            try
+            {
+                String line = fileRead.readLine();
+                if(line != null)
+                    sendMessage(line);
+                else
+                    break;  //exit loop when there is no more data
+            }
+            catch (IOException e)
+            {
+                System.out.println("I/O Exception");
+            }
+        }
+        System.out.println("Done writing");
+        sendMessage("eliFVSC");
     }
 
     //Closes the socket and clears the I/O streams

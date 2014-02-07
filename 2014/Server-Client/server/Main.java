@@ -1,5 +1,4 @@
-//Creates TCP Server on port 3612
-//exits on receiving "take the highway"
+package server;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -8,7 +7,10 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class Server_Main
+/**
+ * Created by Alex on 2/1/14.
+ */
+public class Main
 {
     public static void main(String argv[]) throws Exception
     {
@@ -36,10 +38,17 @@ public class Server_Main
                 System.out.println("Waiting for client's message");
                 clientSentence = tcpServer.getMessage();
                 System.out.println("Received: " + clientSentence);
-                capitalizedSentence = clientSentence.toUpperCase() + '\n';
-                System.out.print("Sending data to client...");
-                tcpServer.sendMessage(capitalizedSentence);
-                System.out.print("Sucess!\n");
+                if(clientSentence.equalsIgnoreCase("file"))
+                {
+                    tcpServer.writeCSVFile("yo");
+                }
+                else
+                {
+                    capitalizedSentence = clientSentence.toUpperCase() + '\n';
+                    System.out.print("Sending data to client...");
+                    tcpServer.sendMessage(capitalizedSentence);
+                    System.out.print("Sucess!\n");
+                }
             }
             catch(IOException e)
             {

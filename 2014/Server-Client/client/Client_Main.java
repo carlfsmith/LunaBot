@@ -1,16 +1,18 @@
-//Creates TCP Client at localhost:3612
-//type, "take the highway" to exit
+package client;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.Socket;
 
+/**
+ * Created by Alex on 2/6/14.
+ */
 public class Client_Main
 {
     public static void main(String argv[]) throws Exception
     {
+        Logger log = new Logger("my_file.txt");
+
         String sentence = "";
         String modifiedSentence = "";
 
@@ -42,10 +44,17 @@ public class Client_Main
             try
             {
                 sentence = inFromUser.readLine();
-                client.sendMessage(sentence);
-
-                modifiedSentence = client.getMessage();
-                System.out.println("FROM SERVER: " + modifiedSentence);
+                if(sentence.equalsIgnoreCase("go file"))
+                {
+                    client.sendFile("csv_test.csv");
+                }
+                else
+                {
+                    client.sendMessage(sentence);
+                    modifiedSentence = client.getMessage();
+                    System.out.println("FROM SERVER: " + modifiedSentence);
+                    log.write(modifiedSentence);
+                }
             }
             catch(IOException e)
             {
@@ -56,5 +65,5 @@ public class Client_Main
         while(!sentence.equalsIgnoreCase("Take the highway"));
 
         client.close();
-	}
+    }
 }
