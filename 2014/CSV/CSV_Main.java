@@ -28,7 +28,7 @@ public class CSV_Main
         CSVRecord bla = new CSVRecord(format);
         bla.setItem("Num", "3,3");
 
-        CSVFile file = new CSVFile();
+        CSVFileWriter file = new CSVFileWriter();
         file.setFile("csv_test");
         file.setFormat(format);
         file.writeRecord(record);

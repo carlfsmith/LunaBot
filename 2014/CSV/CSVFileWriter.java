@@ -3,7 +3,7 @@
  *  Author: Alex Anderson
  *  Note: The class must be given a file name and a CSVFormat object before it will
  *              begin writing to the file.
- *  Date: 2/5/14
+ *  Date: 2/15/14
  */
 
 package csv;
@@ -13,18 +13,18 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class CSVFile
+public class CSVFileWriter
 {
-    public CSVFile(){}
-    public CSVFile(CSVFormat format)
+    public CSVFileWriter(){}
+    public CSVFileWriter(CSVFormat format)
     {
         setFormat(format);
     }
-    public CSVFile(String file_name)
+    public CSVFileWriter(String file_name)
     {
         setFile(file_name);
     }
-    public CSVFile(String file_name, CSVFormat format)
+    public CSVFileWriter(String file_name, CSVFormat format)
     {
         setFormat(format);
         setFile(file_name);
