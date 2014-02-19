@@ -9,3 +9,5 @@ IR Datasheet & Code Snippets: https://www.sparkfun.com/products/8958
 IR & Arduino Project: http://arduinomega.blogspot.com/2011/05/infrared-long-range-sensor-gift-of.html
 
 Beaglebone & OpenCV Info: http://derekmolloy.ie/category/embedded-systems/beaglebone/
+
+Robot Map creation Paper: http://www.jonh.net/~jonh/robots/mapping/submitted-paper.html
