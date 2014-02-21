@@ -1,14 +1,17 @@
 /*
- * Purpose: Maintain a map of sensors' IP addresses and ports
+ * Purpose: Maintain a map of IP addresses and ports at which to
+ *              access various data.
  * Author:  Alex Anderson
- * Notes:   This is still under development. I plan to use a CSV
- *              file store the data.
- * Date: 2/15/14
+ * Notes:   Class expects to read CSV file port_map.csv to get data
+ * Date:    2/18/14
  */
 
 package socket;
 
 import java.util.ArrayList;
+
+import csv.CSVFileReader;
+import csv.CSVRecord;
 
 class PortMap
 {
@@ -17,20 +20,61 @@ class PortMap
         return ourInstance;
     }
 
-    public AddPort getAddPort(PortName name, String homeIP)
+    public ArrayList<AddPort> getAskPorts()
     {
-        /* TODO: Look up IP address and port numbers
-                    return "localhost" if the home and target IP addresses are the same
-                    I'm not for sure the "localhost" thing is necessary
-         */
-
-        return new AddPort(name, "localhost", 3612);
+        return askPorts;
+    }
+    public ArrayList<AddPort> getListenPorts()
+    {
+        return listenPorts;
     }
 
     private static PortMap ourInstance = new PortMap();
-    private ArrayList<AddPort> ports = new ArrayList<AddPort>();
+    private ArrayList<AddPort> askPorts = new ArrayList<AddPort>();
+    private ArrayList<AddPort> listenPorts = new ArrayList<AddPort>();
+
     private PortMap()
     {
-        // TODO: Read IP addresses and port numbers from a file and store in "ports"
+        CSVFileReader file = new CSVFileReader("port_map.csv"); //get the file
+        CSVRecord record = file.readRecord();   //read the first record
+
+        PortName[] portNames = PortName.values();   //array of recognized port names
+
+        //while the read was valid
+        while(record != null)
+        {
+            String name = record.getItem("Name");
+
+            System.out.print("Record read: " + name);
+
+            //see if the Name field matches one of the expected port names
+            for(int i = 0; i < portNames.length; i++)
+            {
+                if(name.equalsIgnoreCase(portNames[i].name()))
+                {
+                    //If a match was found, get the address and port
+                    String address = record.getItem("Address");
+                    int port = Integer.parseInt(record.getItem("Port"));
+
+                    //Determine if this is a server or client
+                    boolean isServer = false;
+                    if(record.getItem("Role").equalsIgnoreCase("Server"))
+                        isServer = true;
+
+                    //add a new AddPort object to store the information
+                    if(isServer)
+                        listenPorts.add(new AddPort(portNames[i], address, port, isServer));
+                    else
+                        askPorts.add(new AddPort(portNames[i], address, port, isServer));
+
+                    System.out.print(" at " + address + ":" + Integer.toString(port) + " Server=" + Boolean.toString(isServer) + "\tMatched");
+                }
+            }
+
+            record = file.readRecord(); //read the next record
+            System.out.println();
+        }
+
+        file.close();
     }
 }

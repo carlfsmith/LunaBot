@@ -9,25 +9,15 @@
 
 package socket;
 
-class Protocol
+public class Protocol
 {
-    public static Protocol getInstance()
-    {
-        return ourInstance;
-    }
+    public static final String empty = "~";
+    public static final String request = "?";
 
-    public String fileStart()
-    {
-        return "File";
-    }
-    public String fileEnd()
-    {
-        return "eliF";
-    }
+    public static final String fileStart = "File";
+    public static final String fileEnd = "eliF";
 
-    private Protocol()
-    {
-        // TODO: Read protocol from file
-    }
-    private static Protocol ourInstance = new Protocol();
+    public static final String xAxis = "x";
+    public static final String yAxis = "y";
+    public static final String zAxis = "z";
 }

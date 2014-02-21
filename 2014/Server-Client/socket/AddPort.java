@@ -10,14 +10,16 @@ package socket;
 
 class AddPort
 {
-    public AddPort(PortName name, String address, int port)
+    public AddPort(PortName name, String address, int port, boolean isServer)
     {
         this.name = name;
         this.address = address;
         this.port = port;
+        this.isServer = isServer;
     }
 
     public final PortName name;
     public final String address;
     public final int port;
+    public final boolean isServer;
 }

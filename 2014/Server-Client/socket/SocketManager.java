@@ -1,9 +1,11 @@
 /*
- * Purpose: Allows for a single interface to all servers/clients
+ * Purpose: Singleton which allows creation of predefined sockets on two
+ *              threads. One for listening another for asking. Communication
+ *              with threads if facilitated by a MessageQueue class
  * Author:  Alex Anderson
  * Notes:   Uses PortName enumeration to specify which server/client to use
  *          I am considering making this class a singleton
- * Date: 2/15/14
+ * Date: 2/18/14
  */
 
 package socket;
@@ -15,41 +17,63 @@ import java.util.ArrayList;
 
 public class SocketManager
 {
-    public SocketManager(){}
-
-    //returns false if server could not be created
-    public boolean createServer(PortName name) throws IOException
+    private SocketManager(){}
+    public static SocketManager getInstance()
     {
-        //if a server is already created for this, don't add another
-        //only one server is allowed on a port
-        if(this.findSocket(name) == null)
-        {
-            sockets.add(new MySocket(name, "localhost", true));
-            return true;
-        }
-
-        return false;
+        return instance;
     }
-    //returns false if server could not be created
-    public boolean createClient(PortName name) throws IOException
+
+    //Initializes threads accept read and write queues as parameters
+    public boolean initialize(TCPMessageQueue listen, TCPMessageQueue ask)
+    {
+        askThread = new AskThread(ask, PortMap.getInstance().getAskPorts());
+
+        askThread.start();
+        return true;
+    }
+
+    public void interruptListen(){}
+    public void interruptAsk()
+    {
+        askThread.interrupt();
+    }
+    public void interruptAll()
+    {
+        this.interruptAsk();
+        this.interruptListen();
+    }
+    public void flushListen(){}   //ensure the queue is emptied, look up how to do this
+    public void flushAsk(){}
+    public void flushAll(){}
+
+    private AskThread askThread;
+
+    //lets the port map decide if it should be a server or not
+    public boolean createSocket(PortName name) throws IOException
     {
         if(this.findSocket(name) == null)
         {
-            sockets.add(new MySocket(name, "localhost", false));
+            AddPort portInfo = null;//PortMap.getInstance().getAddPort(name);
+
+            sockets.add(new MySocket(portInfo));
+
             return true;
         }
-
         return false;
     }
 
     //returns true if successful
-    public boolean sendData(PortName name, String data)
+    public boolean sendData(PortName name, String protocol, String data)
     {
+        boolean successful = false;
         MySocket sock = this.findSocket(name);
         if(sock != null)
-            return sock.sendMessage(data);  //returns true if successful
+        {
+            if(sock.sendMessage(protocol))
+                successful = sock.sendMessage(data);
+        }
 
-        return false;   //Socket wasn't defined for that port
+        return successful;
     }
     //returns null if an error occurred
     public String getData(PortName name)
@@ -105,5 +129,6 @@ public class SocketManager
         return null;
     }
 
+    private static SocketManager instance = new SocketManager();
     private ArrayList<MySocket> sockets = new ArrayList<MySocket>();
 }
