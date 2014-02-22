@@ -1,3 +1,3 @@
 Name,Address,Port,Role
-GYRO_OUT,localhost,3612,server
-gyro_in,localhost,3612,client
+GYRO_OUT,localhost,3612,listen
+gyro_in,localhost,3612,request

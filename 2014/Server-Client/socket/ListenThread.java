@@ -1,38 +1,84 @@
+/*
+ * Purpose: Monitor all servers and place the messages received
+ *              into a TCPMessageQueue.
+ * Author:  Alex Anderson
+ * Notes:   This is functional, but still under construction.
+ * Date:    2/22/14
+ */
+
 package socket;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * Created by Alex on 2/20/14.
- */
-public class ListenThread extends Thread
+class ListenThread extends Thread
 {
-    public ListenThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo)
+    public ListenThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo, int timeout)
     {
         this.queue = queue;
         this.sockInfo = sockInfo.toArray(new AddPort[sockInfo.size()]);
+        this.timeout = timeout;
     }
 
     public void run()
     {
         try
         {
-            this.initializeSockets(sockInfo);
+            this.initializeSockets(sockInfo);   //initialize all sockets/servers in sockInfo
         }
         catch(InterruptedException e)
         {
-            System.out.println("Sudden death!");
+            System.out.println("Sudden death!");    //The thread was interrupted during initialization
             return;
+        }
+
+        while(true) //this thread will run as long as the main program (ideally)
+        {
+            try //for interrupt exceptions
+            {
+                //Check all sockets to see if there is anything in the buffers
+                for(int i = 0; i < sockets.length; i++)
+                {
+                    //if it wasn't initialized don't use it
+                    if(sockets[i] == null)
+                    {
+                        System.out.println("WARNING: server " + sockInfo[i].name + " is null");
+                        continue;
+                    }
+
+                    try
+                    {
+                        String protocol;
+                        if((protocol = sockets[i].getMessage()) != null)  //if there is something there
+                        {
+                            String msg = sockets[i].getMessage();
+                            //add to the queue
+                            queue.add(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));
+                        }
+                    }
+                    catch(IOException e)
+                    {
+                        //so long as protocol is not null there should be no exceptions
+                    }
+                }
+
+                Thread.sleep(timeout);
+            }
+            catch(InterruptedException e)
+            {
+                System.out.println("The listening thread was interrupted");
+                return;
+            }
         }
     }
 
-    private MySocket getSocket(PortName name)
+    //Could be depreciated
+    private TCPServer getSocket(PortName name)
     {
-        MySocket sock = null;
+        TCPServer sock = null;
         for(int i = 0; i < sockets.length; i++)
         {
-            if(sockets[i].getName() == name)
+            if(sockets[i].getPortInfo().name == name)
             {
                 sock = sockets[i];
                 break;
@@ -46,22 +92,42 @@ public class ListenThread extends Thread
     {
         int numInit = 0;    //number of sockets initialized successfully
 
-        sockets = new MySocket[sockInfo.length];    //use array to access faster than list
-        //create sockets
+        sockets = new TCPServer[sockInfo.length];    //use array to access faster than list
+        //create servers
+        boolean createSuccess = false;
         for(int i = 0; i < sockets.length; i++)
         {
+            //if the server hasn't been created yet
+            if(createSuccess == false)
+            {
+                try
+                {
+                    sockets[i] = new TCPServer(sockInfo[i], 10);    //last parameter is the socket timeout value in milliseconds
+                    createSuccess = true;
+                }
+                catch(IOException e)
+                {
+                    //Exception was likely thrown because another server is already on this port
+                    //This type of error cannot be resolved by the program
+                    System.out.println("Error occurred creating server " + sockInfo[i].name);
+                    //TODO: figure out a better way to resolve/signal these errors. Possibly throw custom exception
+                    continue;   //continue to initialize of the next server
+                }
+            }
+
+            //Server is already initialized. Now we wait for the client.
             try
             {
-                sockets[i] = new MySocket(sockInfo[i]);
+                sockets[i].waitForClient(); //waits for client for specified timeout
                 numInit++;
+                createSuccess = false;  //reset creation flag for next loop
             }
             catch(IOException e)
             {
-                //only reason for IOException is that the server wasn't up, so we'll try again
-                System.out.println("Nothing was there there for " + sockInfo[i].name.name());
-                Thread.sleep(1000);  //wait for a second and try again
-                i--;    //reset i
-                continue;
+                //No client showed up, sleep and check again
+                System.out.println("No client showed up on " + sockInfo[i].address + ":" + sockInfo[i].port);
+                i--;    //reset i to come bac to this server
+                Thread.sleep(10);
             }
         }
 
@@ -71,7 +137,8 @@ public class ListenThread extends Thread
         return numInit;
     }
 
-    private MySocket[] sockets;
+    private int timeout;
+    private TCPServer[] sockets;
     private AddPort[] sockInfo;
     private TCPMessageQueue queue;
 }

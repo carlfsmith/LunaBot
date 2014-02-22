@@ -1,11 +1,12 @@
 /*
  * Purpose: Singleton which allows creation of predefined sockets on two
- *              threads. One for listening another for asking. Communication
- *              with threads if facilitated by a MessageQueue class
+ *              threads. One for listening another for requesting. Communication
+ *              with threads if facilitated by a TCPMessageQueue class
  * Author:  Alex Anderson
- * Notes:   Uses PortName enumeration to specify which server/client to use
- *          I am considering making this class a singleton
- * Date: 2/18/14
+ * Notes:   To specify which ports are to have servers/clients modify port_map.csv.
+ *              if Role=listen a server will be created. if Role=request a client
+ *              will be created
+ * Date: 2/22/14
  */
 
 package socket;
@@ -24,15 +25,21 @@ public class SocketManager
     }
 
     //Initializes threads accept read and write queues as parameters
-    public boolean initialize(TCPMessageQueue listen, TCPMessageQueue ask)
+    //timeout specifies how often ports/queues should be updated by the threads in milliseconds
+    public boolean initialize(TCPMessageQueue listen, TCPMessageQueue ask, int timeout)
     {
-        askThread = new AskThread(ask, PortMap.getInstance().getAskPorts());
+        askThread = new RequestThread(ask, PortMap.getInstance().getAskPorts(), timeout);
+        listenThread = new ListenThread(listen, PortMap.getInstance().getListenPorts(), timeout);
 
         askThread.start();
+        listenThread.start();
         return true;
     }
 
-    public void interruptListen(){}
+    public void interruptListen()
+    {
+        listenThread.interrupt();
+    }
     public void interruptAsk()
     {
         askThread.interrupt();
@@ -46,7 +53,10 @@ public class SocketManager
     public void flushAsk(){}
     public void flushAll(){}
 
-    private AskThread askThread;
+    private RequestThread askThread;
+    private ListenThread listenThread;
+
+    /*********************************All methods below here will be depreciated************************/
 
     //lets the port map decide if it should be a server or not
     public boolean createSocket(PortName name) throws IOException

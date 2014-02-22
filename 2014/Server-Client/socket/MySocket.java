@@ -3,7 +3,7 @@
  *          Use AddPort objects to ensure servers/clients
  *          communicate on the correct ports.
  * Author: Alex Anderson
- *
+ * Note:    This class could be nearing depreciation
  * Date: 2/18/14
  */
 
@@ -67,20 +67,12 @@ class MySocket
         try
         {
             if(this.isServer())
-            {
-                System.out.println("I'm a server");
                 return server.getMessage();
-            }
             else
-            {
-                System.out.println("I'm a client");
                 return client.getMessage();
-            }
         }
         catch(IOException e)
         {
-            System.out.println("IOException in MySocket.getMessage()");
-            e.printStackTrace();
             return null;
         }
     }

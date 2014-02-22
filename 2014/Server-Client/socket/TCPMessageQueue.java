@@ -1,9 +1,11 @@
 package socket;
 
 /*
- * Purpose: Simple Queue which allows messenger threads
- *              to communicate with the main thread
+ * Purpose: Simple Queue which allows Listen/RequestThread classes
+ *              to communicate with the main thread via the
+ *              TCPMessage class.
  * Author:  Alex Anderson
+ * Date:    2/22/14
  */
 
 import java.util.ArrayList;
@@ -16,9 +18,27 @@ public class TCPMessageQueue
     }
     public synchronized TCPMessage get()
     {
-        TCPMessage msg = msgs.get(0);
-        msgs.remove(0);
-        return msg; //get from the beginning
+        try
+        {
+            TCPMessage msg = msgs.get(0);
+            msgs.remove(0);
+            return msg; //get from the beginning
+        }
+        catch(IndexOutOfBoundsException e)
+        {
+            return null;
+        }
+    }
+    public synchronized TCPMessage peek()
+    {
+        try
+        {
+            return msgs.get(0);
+        }
+        catch(IndexOutOfBoundsException e)
+        {
+            return null;
+        }
     }
     public synchronized int size()
     {

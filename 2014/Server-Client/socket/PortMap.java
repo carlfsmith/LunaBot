@@ -1,9 +1,8 @@
 /*
- * Purpose: Maintain a map of IP addresses and ports at which to
- *              access various data.
+ * Purpose: Read port_map.csv and compile information into AddPort objects
  * Author:  Alex Anderson
  * Notes:   Class expects to read CSV file port_map.csv to get data
- * Date:    2/18/14
+ * Date:    2/22/14
  */
 
 package socket;
@@ -58,7 +57,7 @@ class PortMap
 
                     //Determine if this is a server or client
                     boolean isServer = false;
-                    if(record.getItem("Role").equalsIgnoreCase("Server"))
+                    if(record.getItem("Role").equalsIgnoreCase("Listen"))
                         isServer = true;
 
                     //add a new AddPort object to store the information

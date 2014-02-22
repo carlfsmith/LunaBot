@@ -1,9 +1,8 @@
 /*
  *  Purpose: Creates and maintains a TCP/IP connection to a client
- *  Author: Alex Anderson
+ *  Author:  Alex Anderson
  *
- *  Note:   As is, this only handles one client at a time; we may
- *              have to change this.
+ *  Note:   Only handles one client at a time
  *          This should run on the side least likely to fail
  *
  *  Date: 2/15/14
@@ -11,21 +10,37 @@
 
 package socket;
 
-import java.io.IOException;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 class TCPServer
 {
+    public TCPServer(AddPort portInfo, int timeoutMills) throws IOException
+    {
+        createServer(portInfo, timeoutMills);
+    }
+    //depreciated
     public TCPServer(int port) throws IOException
     {
         createServer(port);
     }
 
     //returns false if the server has not been initialized or if the server is open
+    public boolean createServer(AddPort portInfo, int timeoutMills) throws IOException
+    {
+        if(ss != null && ss.isClosed() == false)
+            return false;
+        else
+        {
+            ss = new ServerSocket(portInfo.port);
+            ss.setSoTimeout(timeoutMills);  //set timeout for waiting for clients
+            this.portInfo = portInfo;
+            this.timeoutMills = timeoutMills;
+            return true;
+        }
+    }
+    //depreciated
     public boolean createServer(int port) throws IOException
     {
         if(ss != null && ss.isClosed() == false)
@@ -40,14 +55,21 @@ class TCPServer
     public void waitForClient() throws IOException
     {
         client = ss.accept();
+        client.setSoTimeout(this.timeoutMills); //set timeout for socket
         fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
         toClient = new DataOutputStream(client.getOutputStream());
+    }
+
+    public AddPort getPortInfo()
+    {
+        return this.portInfo;
     }
 
     public boolean sendMessage(String msg) throws IOException
     {
         if(toClient != null)
         {
+            // \n signals the end of a message
             if(msg.endsWith("\n"))
                 toClient.writeBytes(msg);
             else
@@ -62,13 +84,8 @@ class TCPServer
     public String getMessage() throws IOException
     {
         if(fromClient != null)
-        {
-            String msg = fromClient.readLine();
-            System.out.println("TCPServer.fromClient.readLine() = " + msg);
-            return msg;
-        }
+            return fromClient.readLine();
 
-        System.out.println("TCPServer.fromClient is null");
         return null;
     }
 
@@ -99,6 +116,8 @@ class TCPServer
 
     private ServerSocket ss;
     private Socket client;
+    private int timeoutMills;
+    private AddPort portInfo;
     private BufferedReader fromClient;
     private DataOutputStream toClient;
 }

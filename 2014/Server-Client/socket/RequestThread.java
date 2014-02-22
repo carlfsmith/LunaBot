@@ -1,17 +1,23 @@
+/*
+ * Purpose: Monitor the specified TCPMessageQueue and send any
+ *              messages which are placed in it.
+ * Author:  Alex Anderson
+ * Notes:   This is functional, but still under construction
+ * Date:    2/22/14
+ */
+
 package socket;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-/**
- * Created by Alex on 2/20/14.
- */
-class AskThread extends Thread
+class RequestThread extends Thread
 {
-    public AskThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo)
+    public RequestThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo, int timeout)
     {
         this.queue = queue;
         this.sockInfo = sockInfo.toArray(new AddPort[sockInfo.size()]);
+        this.timeout = timeout;
     }
 
     @Override
@@ -19,7 +25,7 @@ class AskThread extends Thread
     {
         try
         {
-            int numInit = this.initializeSockets(sockInfo);
+            this.initializeSockets(sockInfo);
         }
         catch (InterruptedException e)
         {
@@ -31,7 +37,6 @@ class AskThread extends Thread
         {
             try
             {
-                System.out.println("Hello, from the asking thread");
                 while(queue.size() > 0)
                 {
                     TCPMessage msg = queue.get();
@@ -39,8 +44,9 @@ class AskThread extends Thread
                     MySocket sock = this.getSocket(msg.getName());
                     sock.sendMessage(msg.getProtocol());
                     sock.sendMessage(msg.getMessage());
+                    System.out.println("Requested something");
                 }
-                Thread.sleep(1000);
+                Thread.sleep(timeout);
             }
             catch(InterruptedException e)
             {
@@ -94,6 +100,7 @@ class AskThread extends Thread
         return numInit;
     }
 
+    private int timeout;
     private MySocket[] sockets;
     private AddPort[] sockInfo;
     private TCPMessageQueue queue;
