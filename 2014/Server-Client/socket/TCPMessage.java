@@ -24,6 +24,11 @@ public class TCPMessage
         return message;
     }
 
+    public String toString()
+    {
+        return "From " + name + ": " + protocol + "-" + message;
+    }
+
     private final PortName name;
     private final String protocol;
     private final String message;

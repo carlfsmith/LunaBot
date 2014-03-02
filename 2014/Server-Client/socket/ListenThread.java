@@ -3,7 +3,7 @@
  *              into a TCPMessageQueue.
  * Author:  Alex Anderson
  * Notes:   This is functional, but still under construction.
- * Date:    2/22/14
+ * Date:    3/1/14
  */
 
 package socket;
@@ -28,16 +28,19 @@ class ListenThread extends Thread
         }
         catch(InterruptedException e)
         {
-            System.out.println("Sudden death!");    //The thread was interrupted during initialization
+            System.out.println("The listening thread was interrupted during initialization!");
             return;
         }
 
+        int savedIndex = 0; //saves the index of the server to be check next cycle
         while(true) //this thread will run as long as the main program (ideally)
         {
             try //for interrupt exceptions
             {
+                long startTime = System.currentTimeMillis();
+                int numMsgs = 0;    //track how many messages have been received
                 //Check all sockets to see if there is anything in the buffers
-                for(int i = 0; i < sockets.length; i++)
+                for(int i = savedIndex; i < sockets.length; i++)
                 {
                     //if it wasn't initialized don't use it
                     if(sockets[i] == null)
@@ -54,12 +57,47 @@ class ListenThread extends Thread
                             String msg = sockets[i].getMessage();
                             //add to the queue
                             queue.add(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));
+                            numMsgs++;
                         }
                     }
                     catch(IOException e)
                     {
                         //so long as protocol is not null there should be no exceptions
+                        //and if there are there isn't much I can do to fix it, so just go on to th next one
+                        //TODO: if it happens at the same port consistently signal that the port might be down
                     }
+
+                    savedIndex = i;     //save the index in case we have to stop in the middle
+
+                    /************Special exiting circumstances for flushing and timeouts***********/
+
+                    //just checked the last server look to see if we nee to go again
+                    if(i+1 == sockets.length)
+                    {
+                        boolean goAgain = false;
+                        //there is still time left, restart at i=0 to check ports again
+                        if(System.currentTimeMillis() - startTime < timeout)
+                            goAgain = true;
+
+                        //if a flush has been requested
+                        if(queue.isFlushRequested())
+                        {
+                            //if messages were received we need to check if there are more
+                            if(numMsgs > 0)
+                                goAgain = true;
+                            else
+                                queue.flushComplete();
+                        }
+
+                        if(goAgain)
+                        {
+                            numMsgs = 0;
+                            i = 0;
+                            savedIndex = 0;
+                        }
+                    }
+                    else if(System.currentTimeMillis() - startTime > timeout)
+                        break;
                 }
 
                 Thread.sleep(timeout);

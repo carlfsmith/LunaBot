@@ -1,20 +1,15 @@
 /*
  * Purpose: Singleton which allows creation of predefined sockets on two
- *              threads. One for listening another for requesting. Communication
- *              with threads if facilitated by a TCPMessageQueue class
+ *              threads. One thread for listening another for requesting.
+ *          Communication with threads if facilitated by a TCPMessageQueue class
  * Author:  Alex Anderson
  * Notes:   To specify which ports are to have servers/clients modify port_map.csv.
  *              if Role=listen a server will be created. if Role=request a client
  *              will be created
- * Date: 2/22/14
+ * Date: 3/1/14
  */
 
 package socket;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import java.util.ArrayList;
 
 public class SocketManager
 {
@@ -24,15 +19,53 @@ public class SocketManager
         return instance;
     }
 
-    //Initializes threads accept read and write queues as parameters
+    //Initializes threads, accept read and write queues as parameters
     //timeout specifies how often ports/queues should be updated by the threads in milliseconds
-    public boolean initialize(TCPMessageQueue listen, TCPMessageQueue ask, int timeout)
+    public boolean initRequest(TCPMessageQueue request, int timeout)
     {
-        askThread = new RequestThread(ask, PortMap.getInstance().getAskPorts(), timeout);
+        requestThread = new RequestThread(request, PortMap.getInstance().getRequestPorts(), timeout);
+        requestQueue = request;
+        requestTimeout = timeout;
+        return true;
+    }
+    public boolean initListen(TCPMessageQueue listen, int timeout)
+    {
         listenThread = new ListenThread(listen, PortMap.getInstance().getListenPorts(), timeout);
+        listenQueue = listen;
+        listenTimeout = timeout;
+        return true;
+    }
+    public boolean initAll(TCPMessageQueue listen, TCPMessageQueue request, int timeout)
+    {
+        return initRequest(request, timeout) && initListen(listen, timeout);
+    }
 
-        askThread.start();
+    //returns false if request thread is not initialized
+    public boolean startRequest()
+    {
+        if(requestThread == null)
+            return false;
+
+        requestThread.start();
+        return true;
+    }
+    //returns false if listen thread is not initialized
+    public boolean startListen()
+    {
+        if(listenThread == null)
+            return false;
+
         listenThread.start();
+        return true;
+    }
+    //returns false if any threads are not initialized
+    public boolean startAll()
+    {
+        if(requestThread == null || listenThread == null)
+            return false;
+
+        startRequest();
+        startListen();
         return true;
     }
 
@@ -40,105 +73,86 @@ public class SocketManager
     {
         listenThread.interrupt();
     }
-    public void interruptAsk()
+    public void interruptRequest()
     {
-        askThread.interrupt();
+        requestThread.interrupt();
     }
     public void interruptAll()
     {
-        this.interruptAsk();
+        this.interruptRequest();
         this.interruptListen();
     }
-    public void flushListen(){}   //ensure the queue is emptied, look up how to do this
-    public void flushAsk(){}
-    public void flushAll(){}
 
-    private RequestThread askThread;
-    private ListenThread listenThread;
-
-    /*********************************All methods below here will be depreciated************************/
-
-    //lets the port map decide if it should be a server or not
-    public boolean createSocket(PortName name) throws IOException
+    //blocks until the all messages have been placed in the listen queue
+    //BE CAREFUL!!! Queue is considered flushed when there are no more messages on any of the ports
+    //TODO: Look into allowing flush on single port
+    //return true if successful
+    public boolean flushListen()
     {
-        if(this.findSocket(name) == null)
-        {
-            AddPort portInfo = null;//PortMap.getInstance().getAddPort(name);
+        listenQueue.requestFlush();
+        System.out.println("Flush requested on listening queue.");
 
-            sockets.add(new MySocket(portInfo));
+        try
+        {
+            int pause = listenTimeout + (listenTimeout/2);  //wait long enough for the thread to run at least once
+            do
+            {
+                Thread.sleep(pause);
+            }
+            while(!listenQueue.isFlushComplete()); //continue to wait until the flush is done
+
+            System.out.println("Listening queue flush successfull? " + listenQueue.isFlushComplete());
 
             return true;
         }
-        return false;
-    }
-
-    //returns true if successful
-    public boolean sendData(PortName name, String protocol, String data)
-    {
-        boolean successful = false;
-        MySocket sock = this.findSocket(name);
-        if(sock != null)
+        catch(InterruptedException e)
         {
-            if(sock.sendMessage(protocol))
-                successful = sock.sendMessage(data);
+            System.out.println("Flushing of the listening queue was interrupted.");
+            return false;
         }
-
-        return successful;
     }
-    //returns null if an error occurred
-    public String getData(PortName name)
+    //blocks until the request queue is empty
+    //return true if successful
+    public boolean flushRequest()
     {
-        MySocket sock = this.findSocket(name);
-        if(sock != null)
-        {
-            System.out.println("socket found");
-            return sock.getMessage();
-        }
+        requestQueue.requestFlush();
+        System.out.println("Flush requested on request queue.");
 
-        return null;
-    }
-
-    //returns true if the file was sent successfully
-    public boolean sendFile(PortName name, String file_name) throws FileNotFoundException
-    {
-        MySocket sock = this.findSocket(name);
-        if(sock != null)
-        {
-            System.out.println("socket was found");
-            return sock.sendFile(file_name);
-        }
-
-        return false;
-    }
-    //returns true if the file was received successfully
-    public boolean receiveFile(PortName name)
-    {
         try
         {
-            MySocket sock = this.findSocket(name);
-            if(sock != null)
+            int pause = requestTimeout + (requestTimeout/2);  //wait long enough for the thread to run at least once
+            do
             {
-                sock.receiveFile();
-                return true;
+                Thread.sleep(pause);
             }
-        }
-        catch (IOException e)
-        {}
+            while(!requestQueue.isFlushComplete()); //continue to wait until the flush is done
 
-        return false;
-    }
-    //searches for a specific port which has already been initialized
-    private MySocket findSocket(PortName name)
-    {
-        for(int i = 0; i < sockets.size(); i++)
+            System.out.println("Request queue successfully flushed? " + requestQueue.isFlushComplete());
+
+            return true;
+        }
+        catch (InterruptedException e)
         {
-            if(name == sockets.get(i).getName())
-                return sockets.get(i);
+            System.out.println("Flushing of request queue was interrupted.");
+            return false;
         }
-
-        return null;
     }
+    //blocks until both queues are flushed, request queue is flushed first
+    //return true if successful
+    public boolean flushAll()
+    {
+        System.out.println("Dual flush was requested by main thread.");
+        return this.flushRequest() && this.flushListen();
+    }
+
+    private int requestTimeout;
+    private int listenTimeout;
+
+    private RequestThread requestThread;
+    private ListenThread listenThread;
+
+    private TCPMessageQueue requestQueue;
+    private TCPMessageQueue listenQueue;
 
     private static SocketManager instance = new SocketManager();
-    private ArrayList<MySocket> sockets = new ArrayList<MySocket>();
 }

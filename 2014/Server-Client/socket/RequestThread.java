@@ -3,13 +3,14 @@
  *              messages which are placed in it.
  * Author:  Alex Anderson
  * Notes:   This is functional, but still under construction
- * Date:    2/22/14
+ * Date:    3/1/14
  */
 
 package socket;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
 
 class RequestThread extends Thread
 {
@@ -27,9 +28,9 @@ class RequestThread extends Thread
         {
             this.initializeSockets(sockInfo);
         }
-        catch (InterruptedException e)
+        catch(InterruptedException e)
         {
-            System.out.println("Sudden death!");
+            System.out.println("Request thread was interrupted during initialization!");
             return;
         }
 
@@ -37,31 +38,48 @@ class RequestThread extends Thread
         {
             try
             {
-                while(queue.size() > 0)
+                long startTime = System.currentTimeMillis();
+                TCPMessage msg;
+                TCPClient sock;
+                //exit if we have exceeded execution time and a flush has not been requested
+                while((System.currentTimeMillis() - startTime < timeout) || (queue.size() > 0 && queue.isFlushRequested()))
                 {
-                    TCPMessage msg = queue.get();
-
-                    MySocket sock = this.getSocket(msg.getName());
-                    sock.sendMessage(msg.getProtocol());
-                    sock.sendMessage(msg.getMessage());
-                    System.out.println("Requested something");
+                    //  there is a message in queue     the port send the message exists
+                    if((msg = queue.get()) != null && ( sock = this.getSocket( msg.getName() )) != null )
+                    {
+                        try
+                        {
+                            sock.sendMessage(msg.getProtocol());
+                            sock.sendMessage(msg.getMessage());
+                        }
+                        catch(IOException e)
+                        {
+                            //This exception should only be raised if the server disappeared
+                            //TODO: possibly implement a way to detect if a server has left
+                        }
+                    }
                 }
+
+                //signal if flush was complete
+                if(queue.isFlushRequested() && queue.size() == 0)
+                    queue.flushComplete();
+
                 Thread.sleep(timeout);
             }
             catch(InterruptedException e)
             {
-                System.out.println("The asking thread was interrupted");
+                System.out.println("The request thread was interrupted");
                 return;
             }
         }
     }
 
-    private MySocket getSocket(PortName name)
+    private TCPClient getSocket(PortName name)
     {
-        MySocket sock = null;
+        TCPClient sock = null;
         for(int i = 0; i < sockets.length; i++)
         {
-            if(sockets[i].getName() == name)
+            if(sockets[i].getPortInfo().name == name)
             {
                 sock = sockets[i];
                 break;
@@ -75,13 +93,13 @@ class RequestThread extends Thread
     {
         int numInit = 0;    //number of sockets initialized successfully
 
-        sockets = new MySocket[sockInfo.length];    //use array to access faster than list
+        sockets = new TCPClient[sockInfo.length];    //use array to access faster than list
         //create socket
         for(int i = 0; i < sockets.length; i++)
         {
             try
             {
-                sockets[i] = new MySocket(sockInfo[i]);
+                sockets[i] = new TCPClient(sockInfo[i]);
                 numInit++;
             }
             catch(IOException e)
@@ -101,7 +119,7 @@ class RequestThread extends Thread
     }
 
     private int timeout;
-    private MySocket[] sockets;
+    private TCPClient[] sockets;
     private AddPort[] sockInfo;
     private TCPMessageQueue queue;
 }

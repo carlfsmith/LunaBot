@@ -19,9 +19,9 @@ class PortMap
         return ourInstance;
     }
 
-    public ArrayList<AddPort> getAskPorts()
+    public ArrayList<AddPort> getRequestPorts()
     {
-        return askPorts;
+        return requestPorts;
     }
     public ArrayList<AddPort> getListenPorts()
     {
@@ -29,7 +29,7 @@ class PortMap
     }
 
     private static PortMap ourInstance = new PortMap();
-    private ArrayList<AddPort> askPorts = new ArrayList<AddPort>();
+    private ArrayList<AddPort> requestPorts = new ArrayList<AddPort>();
     private ArrayList<AddPort> listenPorts = new ArrayList<AddPort>();
 
     private PortMap()
@@ -64,7 +64,7 @@ class PortMap
                     if(isServer)
                         listenPorts.add(new AddPort(portNames[i], address, port, isServer));
                     else
-                        askPorts.add(new AddPort(portNames[i], address, port, isServer));
+                        requestPorts.add(new AddPort(portNames[i], address, port, isServer));
 
                     System.out.print(" at " + address + ":" + Integer.toString(port) + " Server=" + Boolean.toString(isServer) + "\tMatched");
                 }

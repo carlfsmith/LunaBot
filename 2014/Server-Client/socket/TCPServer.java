@@ -20,14 +20,9 @@ class TCPServer
     {
         createServer(portInfo, timeoutMills);
     }
-    //depreciated
-    public TCPServer(int port) throws IOException
-    {
-        createServer(port);
-    }
 
     //returns false if the server has not been initialized or if the server is open
-    public boolean createServer(AddPort portInfo, int timeoutMills) throws IOException
+    private boolean createServer(AddPort portInfo, int timeoutMills) throws IOException
     {
         if(ss != null && ss.isClosed() == false)
             return false;

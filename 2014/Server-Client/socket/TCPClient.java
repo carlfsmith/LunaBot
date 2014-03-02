@@ -5,7 +5,7 @@
  *  Note: This should run on the side most likely to fail, as it
  *          can recover easier after a crash
  *
- *  Date: 2/15/14
+ *  Date: 3/1/14
  */
 
 package socket;
@@ -18,10 +18,10 @@ import java.net.Socket;
 
 class TCPClient
 {
-    public TCPClient(){}
-    public TCPClient(String host, int port) throws IOException
+    public TCPClient(AddPort portInfo) throws IOException
     {
-        connectTo(host, port);
+        connectTo(portInfo.address, portInfo.port);
+        this.portInfo = portInfo;
     }
 
     //attempts to connect to a port on a given host i.e. localhost port 3333
@@ -38,6 +38,11 @@ class TCPClient
             fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));    //Input Stream from server
             return true;
         }
+    }
+
+    public AddPort getPortInfo()
+    {
+        return portInfo;
     }
 
     //Waits for a message to be sent from the server.
@@ -90,6 +95,7 @@ class TCPClient
         fromServer = null;
     }
 
+    private AddPort portInfo;
     private Socket socket;
     private DataOutputStream toServer;
     private BufferedReader fromServer;

@@ -1,11 +1,14 @@
 package socket;
 
 /*
- * Purpose: Simple Queue which allows Listen/RequestThread classes
+ * Purpose: Queue which allows Listen/RequestThread classes
  *              to communicate with the main thread via the
  *              TCPMessage class.
  * Author:  Alex Anderson
- * Date:    2/22/14
+ * Notes:   Calling flush will block execution until complete.
+ *              SocketManger's flush functions are preferred
+  *             to setting flush directly although both will work.
+ * Date:    3/1/14
  */
 
 import java.util.ArrayList;
@@ -44,6 +47,24 @@ public class TCPMessageQueue
     {
         return msgs.size();
     }
+    public synchronized void requestFlush()
+    {
+        requestFlush = true;
+    }
+    public synchronized void flushComplete()
+    {
+        requestFlush = false;
+    }
+    public synchronized boolean isFlushRequested()
+    {
+        return requestFlush;
+    }
+    public synchronized boolean isFlushComplete()
+    {
+        return !requestFlush;
+    }
 
     private ArrayList<TCPMessage> msgs = new ArrayList<TCPMessage>();
+
+    private boolean requestFlush = false;
 }

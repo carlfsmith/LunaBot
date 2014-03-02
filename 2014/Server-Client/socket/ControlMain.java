@@ -2,7 +2,7 @@
  * Purpose: Demo use of SocketManger, TCPMessage, and
  *              TCPMessageQueue classes by the main thread
  * Author:  Alex Anderson
- * Date:    2/22/14
+ * Date:    3/1/14
  */
 
 package socket;
@@ -17,22 +17,19 @@ public class ControlMain
     {
         TCPMessageQueue listen = new TCPMessageQueue(); //queue for listening for information
         TCPMessageQueue request = new TCPMessageQueue();    //queue for asking for information
-        SocketManager.getInstance().initialize(listen, request, 500);   //initialize/start the threads. Could make this two functions
 
-        //request information regarding the gyro's x-axis
-        request.add(new TCPMessage(PortName.GYRO_IN, Protocol.xAxis, Protocol.request));
+        //request information regarding the gyro's x-axis 100 times
+        for(int i = 0; i < 100; i++)
+            request.add(new TCPMessage(PortName.GYRO_IN, Protocol.xAxis, Protocol.request));
 
-        BufferedReader userIn = new BufferedReader(new InputStreamReader( System.in ));
-        while(!userIn.readLine().equalsIgnoreCase("stop"))  //Press enter to generate any input .readLine() blocks until \n
-        {
-            System.out.println("Do something useful");
-            if(listen.peek() != null)
-                System.out.println(listen.get().getMessage());
+        SocketManager.getInstance().initAll(listen, request, 50);   //initialize the threads.
+        SocketManager.getInstance().startAll();                     //start the threads
+        SocketManager.getInstance().flushRequest();                 //flush all requests
+        SocketManager.getInstance().flushListen();                  //listen until your ear falls off
 
-            System.out.println(listen.size());
-
-            Thread.sleep(1000);
-        }
+        int size = listen.size();
+        for(int i = 0; i < size; i++)       //print everything we heard
+            System.out.println(listen.get());
 
         SocketManager.getInstance().interruptAll(); //stop the read/write threads
     }
