@@ -1,5 +1,3 @@
-package socket;
-
 /*
  * Purpose: Queue which allows Listen/RequestThread classes
  *              to communicate with the main thread via the
@@ -7,9 +5,11 @@ package socket;
  * Author:  Alex Anderson
  * Notes:   Calling flush will block execution until complete.
  *              SocketManger's flush functions are preferred
-  *             to setting flush directly although both will work.
+ *              to setting flush directly although both should work.
  * Date:    3/1/14
  */
+
+package socket;
 
 import java.util.ArrayList;
 

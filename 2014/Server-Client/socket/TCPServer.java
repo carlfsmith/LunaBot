@@ -10,12 +10,20 @@
 
 package socket;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 class TCPServer
 {
+    public TCPServer(AddPort portInfo) throws IOException
+    {
+        createServer(portInfo, 0);
+    }
     public TCPServer(AddPort portInfo, int timeoutMills) throws IOException
     {
         createServer(portInfo, timeoutMills);
@@ -29,22 +37,21 @@ class TCPServer
         else
         {
             ss = new ServerSocket(portInfo.port);
-            ss.setSoTimeout(timeoutMills);  //set timeout for waiting for clients
+            setTimeout(timeoutMills);  //set timeout for waiting for clients
             this.portInfo = portInfo;
-            this.timeoutMills = timeoutMills;
             return true;
         }
     }
-    //depreciated
-    public boolean createServer(int port) throws IOException
+
+    public void setTimeout(int timeoutMills) throws SocketException
     {
-        if(ss != null && ss.isClosed() == false)
-            return false;
-        else
-        {
-            ss = new ServerSocket(port);
-            return true;
-        }
+        if(ss != null)
+            ss.setSoTimeout(timeoutMills);
+
+        if(client != null)
+            client.setSoTimeout(timeoutMills);
+
+        this.timeoutMills = timeoutMills;
     }
 
     public void waitForClient() throws IOException

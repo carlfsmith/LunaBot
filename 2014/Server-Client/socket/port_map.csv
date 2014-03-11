@@ -1,3 +1,9 @@
-Name,Address,Port,Role
-GYRO_OUT,localhost,3612,listen
-gyro_in,localhost,3612,request
+Name,Address,Port,Mode
+gyro,localhost,3612,in
+gyro,localhost,3612,out
+accel,localhost,3613,in
+accel,localhost,3613,out
+cam_ang,localhost,3614,in
+cam_ang,localhost,3614,out
+cam_error,localhost,3616,in
+cam_error,localhost,3616,out

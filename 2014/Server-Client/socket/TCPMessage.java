@@ -1,8 +1,12 @@
+/*
+ * Purpose:     Contain the a message sent over the network
+ * Author:      Alex Anderson
+ * Notes:       Objects are immutable.
+ * Date:        3/9/14
+ */
+
 package socket;
 
-/**
- * Created by Alex on 2/20/14.
- */
 public class TCPMessage
 {
     public TCPMessage(PortName name, String protocol, String message)
@@ -26,7 +30,7 @@ public class TCPMessage
 
     public String toString()
     {
-        return "From " + name + ": " + protocol + "-" + message;
+        return "Message to/from " + name + ": " + protocol + " " + message;
     }
 
     private final PortName name;

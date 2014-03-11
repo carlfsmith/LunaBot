@@ -19,18 +19,18 @@ class PortMap
         return ourInstance;
     }
 
-    public ArrayList<AddPort> getRequestPorts()
+    public ArrayList<AddPort> getOutPorts()
     {
-        return requestPorts;
+        return outPorts;
     }
-    public ArrayList<AddPort> getListenPorts()
+    public ArrayList<AddPort> getInPorts()
     {
-        return listenPorts;
+        return inPorts;
     }
 
     private static PortMap ourInstance = new PortMap();
-    private ArrayList<AddPort> requestPorts = new ArrayList<AddPort>();
-    private ArrayList<AddPort> listenPorts = new ArrayList<AddPort>();
+    private ArrayList<AddPort> outPorts = new ArrayList<AddPort>();
+    private ArrayList<AddPort> inPorts = new ArrayList<AddPort>();
 
     private PortMap()
     {
@@ -57,14 +57,14 @@ class PortMap
 
                     //Determine if this is a server or client
                     boolean isServer = false;
-                    if(record.getItem("Role").equalsIgnoreCase("Listen"))
+                    if(record.getItem("Mode").equalsIgnoreCase("In"))
                         isServer = true;
 
                     //add a new AddPort object to store the information
                     if(isServer)
-                        listenPorts.add(new AddPort(portNames[i], address, port, isServer));
+                        inPorts.add(new AddPort(portNames[i], address, port, isServer));
                     else
-                        requestPorts.add(new AddPort(portNames[i], address, port, isServer));
+                        outPorts.add(new AddPort(portNames[i], address, port, isServer));
 
                     System.out.print(" at " + address + ":" + Integer.toString(port) + " Server=" + Boolean.toString(isServer) + "\tMatched");
                 }

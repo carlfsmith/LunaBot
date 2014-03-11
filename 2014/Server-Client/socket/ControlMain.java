@@ -2,7 +2,10 @@
  * Purpose: Demo use of SocketManger, TCPMessage, and
  *              TCPMessageQueue classes by the main thread
  * Author:  Alex Anderson
- * Date:    3/1/14
+ * Notes:   Files can be sent automatically but must be received manually.
+ *              I plan to automate receiving files as well.
+ *              The protocols used to signal file transfers are still in flux.
+ * Date:    3/10/14
  */
 
 package socket;
@@ -15,22 +18,33 @@ public class ControlMain
 {
     public static void main(String[] args) throws InterruptedException, IOException
     {
-        TCPMessageQueue listen = new TCPMessageQueue(); //queue for listening for information
-        TCPMessageQueue request = new TCPMessageQueue();    //queue for asking for information
+        long time0 = System.currentTimeMillis();
+        int timeout = 50;   //milliseconds
+        TCPMessageQueue in = new TCPMessageQueue();     //queue for listening for information
+        TCPMessageQueue out = new TCPMessageQueue();    //queue for asking for information
 
-        //request information regarding the gyro's x-axis 100 times
-        for(int i = 0; i < 100; i++)
-            request.add(new TCPMessage(PortName.GYRO_IN, Protocol.xAxis, Protocol.request));
+        SocketManager.getInstance().startAll(in, out, timeout);
+        while(!SocketManager.getInstance().allReady())
+            Thread.sleep(1);
+        System.out.format("%dms for full startup\n", System.currentTimeMillis() - time0);
 
-        SocketManager.getInstance().initAll(listen, request, 50);   //initialize the threads.
-        SocketManager.getInstance().startAll();                     //start the threads
-        SocketManager.getInstance().flushRequest();                 //flush all requests
-        SocketManager.getInstance().flushListen();                  //listen until your ear falls off
+        //request data relating to the gyro's x-axis
+        out.add(new TCPMessage(PortName.GYRO, Protocol.xAxis, Protocol.request));
 
-        int size = listen.size();
-        for(int i = 0; i < size; i++)       //print everything we heard
-            System.out.println(listen.get());
+        Thread.sleep(50);   //give everything enough time to get through the pipe
 
-        SocketManager.getInstance().interruptAll(); //stop the read/write threads
+        BufferedReader userIn = new BufferedReader( new InputStreamReader( System.in ) );
+        boolean flag = true;
+        while(!userIn.readLine().equalsIgnoreCase("exit"))  //type exit to exit other wise press enter to continue
+        {
+            System.out.println(in.get());
+            Thread.sleep(50); //let threads do their thing
+            if(flag)
+                out.add(new TCPMessage(PortName.ACCEL, Protocol.fileRequest, "port_map.csv"));  //ensure that data can be sent/received during operations
+            flag = false;
+            System.out.println("Main is back");
+        }
+
+        SocketManager.getInstance().interruptAll(); //stop the in/out threads
     }
 }
