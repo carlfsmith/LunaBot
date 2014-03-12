@@ -50,13 +50,11 @@ class OutThread extends Thread
                         {
                             String protocol = msg.getProtocol();    //get the message's protocol
 
-                            if(protocol.equals(Protocol.fileRequest))   //a file needs to be sent
+                            if(protocol.equals(Protocol.file))   //a file needs to be sent
                             {
-                                System.out.println("\nRequest to send " + msg.getMessage());
-                                FileTag file = new FileTag(msg.getName(), msg.getMessage());
+                                FileTag file = new FileTag(msg.getName(), msg.getMessage(), true);
                                 if(file.isReady())  //the file was opened successfully
                                 {
-                                    System.out.println("Opened " + msg.getMessage());
                                     queue.add(new TCPMessage(sock.getPortInfo().name, Protocol.fileStart, file.getFileName()));   //signal a file is about to be transmitted
                                     files.add(file);
                                 }
@@ -67,8 +65,6 @@ class OutThread extends Thread
                                 sock.sendMessage(protocol);
                                 sock.sendMessage(msg.getMessage());
 
-                                System.out.println("Sent " + msg.getMessage());
-
                                 /******* if part of a file was sent put the next part on the queue ********/
                                 //          part of a file                  just signaled the beginning
                                 if(protocol.equals(Protocol.fileLine) || protocol.equals(Protocol.fileStart))  //part of a file was sent
@@ -77,11 +73,11 @@ class OutThread extends Thread
                                     if(file != null)    //if the file's tag was found
                                     {
                                         if(file.isReady())    //if there is more to be read
-                                            queue.add(new TCPMessage(file.getPortName(), Protocol.fileLine, file.getFileIn().readLine())); //send the next line
+                                            queue.add(new TCPMessage(file.getPortName(), Protocol.fileLine, file.getFileReader().readLine())); //send the next line
                                         else
                                         {
                                             queue.add(new TCPMessage(file.getPortName(), Protocol.fileEnd, file.getFileName()));    //signal that the end of the file has been reached
-                                            file.getFileIn().close();   //close the file
+                                            file.getFileReader().close();   //close the file
                                             files.remove(file);     //remove the file from the list
                                         }
                                     }
@@ -143,6 +139,7 @@ class OutThread extends Thread
 
         return null;
     }
+
     //returns the number of sockets successfully initialized
     private int initializeSockets(AddPort[] sockInfo) throws InterruptedException
     {
@@ -155,7 +152,6 @@ class OutThread extends Thread
             try
             {
                 sockets[i] = new TCPClient(sockInfo[i]);
-                System.out.println("client " + sockets[i].getPortInfo().port);
                 numInit++;
             }
             catch(IOException e)

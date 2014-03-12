@@ -7,16 +7,25 @@
 
 package socket;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
 class InThread extends Thread
 {
-    public InThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo, int timeout)
+    public InThread(TCPMessageQueue queue, ArrayList<AddPort> sockInfo, String recFileDir, int timeout)
     {
         this.queue = queue;
         this.sockInfo = sockInfo.toArray(new AddPort[sockInfo.size()]);
         this.timeout = timeout;
+
+        if(recFileDir == null || recFileDir.equals(""))     //if there is a bad value fix it
+            recFileDir = "received_files/";
+        if(recFileDir.contains("\\"))           //convert \\ to /
+            recFileDir = recFileDir.replace("\\", "/");
+        if(!recFileDir.endsWith("/"))   //ensure there is a / at the end
+            recFileDir += "/";
+        baseFilePath = recFileDir;
     }
 
     public void run()
@@ -24,6 +33,7 @@ class InThread extends Thread
         try
         {
             this.initializeSockets(sockInfo);   //initialize all servers in sockInfo
+            this.initializeDirectory();     //create all directories needed to store any files
             initialized = true;
         }
         catch(InterruptedException e)
@@ -55,8 +65,12 @@ class InThread extends Thread
                         if((protocol = sockets[i].getMessage()) != null)  //if there is something there
                         {
                             String msg = sockets[i].getMessage();
-                            //add to the queue
-                            queue.add(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));
+
+                            if(protocol.equals(Protocol.fileLine) || protocol.equals(Protocol.fileEnd) || protocol.equals(Protocol.fileStart))
+                                this.writeFileMsg(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));    //write to file
+                            else
+                                queue.add(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));    //add to the queue
+
                             numMsgs++;  //increment the number of messages received this scan
                         }
                     }
@@ -107,6 +121,63 @@ class InThread extends Thread
         }
     }
 
+    private boolean writeFileMsg(TCPMessage msg)
+    {
+        String protocol = msg.getProtocol();
+        if(protocol.equals(Protocol.fileStart)) //create file at the beginning
+        {
+            files.add(new FileTag(msg.getName(), baseFilePath + msg.getName() + "/" + msg.getMessage(), false));
+            return true;
+        }
+        else
+        {
+            FileTag file = getFileTag(msg.getName());
+
+            if(file == null)    //ensure the file was found
+                return false;
+
+            if(protocol.equals(Protocol.fileLine))  // a line was sent
+            {
+                try
+                {
+                    file.getFileWriter().write(msg.getMessage() + "\n");
+                    file.getFileWriter().flush();
+                    return true;
+                }
+                catch (IOException e)
+                {
+                    return false;
+                }
+            }
+            else if(protocol.equals(Protocol.fileEnd))  //we reached the end of the file
+            {
+                try
+                {
+                    file.getFileWriter().close();
+                    files.remove(file);
+                    return true;
+                }
+                catch (IOException e)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return false;   //if we get here the function shouldn't have been called
+    }
+
+    private FileTag getFileTag(PortName name)
+    {
+        for(int i = 0; i < files.size(); i++)
+        {
+            if(files.get(i).getPortName() == name)
+                return files.get(i);
+        }
+
+        return null;
+    }
+
     public synchronized boolean isInitialized()
     {
         return initialized;
@@ -125,6 +196,18 @@ class InThread extends Thread
             }
         }
         return sock;
+    }
+
+    //make directory for each port
+    private boolean initializeDirectory()
+    {
+        boolean successful = true;
+        for(int i = 0; i < sockInfo.length; i++)
+        {
+            if(sockInfo[i] != null) //no null exceptions
+                new File(baseFilePath + sockInfo[i].name).mkdirs(); //make all necessary directories
+        }
+        return successful;
     }
 
     //returns the number of sockets successfully initialized
@@ -177,6 +260,10 @@ class InThread extends Thread
 
     private volatile boolean initialized = false;
     private int timeout;
+
+    private String baseFilePath = "received_files/";
+
+    private ArrayList<FileTag> files = new ArrayList<FileTag>();
 
     private TCPServer[] sockets;
     private AddPort[] sockInfo;

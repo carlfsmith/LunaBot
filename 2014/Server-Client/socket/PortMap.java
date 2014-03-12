@@ -44,8 +44,6 @@ class PortMap
         {
             String name = record.getItem("Name");
 
-            System.out.print("Record read: " + name);
-
             //see if the Name field matches one of the expected port names
             for(int i = 0; i < portNames.length; i++)
             {
@@ -65,13 +63,10 @@ class PortMap
                         inPorts.add(new AddPort(portNames[i], address, port, isServer));
                     else
                         outPorts.add(new AddPort(portNames[i], address, port, isServer));
-
-                    System.out.print(" at " + address + ":" + Integer.toString(port) + " Server=" + Boolean.toString(isServer) + "\tMatched");
                 }
             }
 
             record = file.readRecord(); //read the next record
-            System.out.println();
         }
 
         file.close();

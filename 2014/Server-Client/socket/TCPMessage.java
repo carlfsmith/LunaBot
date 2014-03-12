@@ -15,6 +15,18 @@ public class TCPMessage
         this.protocol = protocol;
         this.message = message;
     }
+    public TCPMessage(PortName name, String protocol, int value)
+    {
+        this.name = name;
+        this.protocol = protocol;
+        this.message = Integer.toString(value);
+    }
+    public TCPMessage(PortName name, String protocol, double value)
+    {
+        this.name = name;
+        this.protocol = protocol;
+        this.message = Double.toString(value);
+    }
     public PortName getName()
     {
         return name;
@@ -30,7 +42,7 @@ public class TCPMessage
 
     public String toString()
     {
-        return "Message to/from " + name + ": " + protocol + " " + message;
+        return name + ": " + protocol + " " + message;
     }
 
     private final PortName name;

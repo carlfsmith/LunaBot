@@ -1,6 +1,6 @@
 /*
  * Purpose: Singleton which allows creation of predefined sockets on two
- *              threads. One thread for listening another for requesting.
+ *              threads. One thread for input another for output.
  *          Communication with threads if facilitated by a TCPMessageQueue class
  * Author:  Alex Anderson
  * Notes:   To specify which ports are to have servers/clients modify port_map.csv.
@@ -29,18 +29,18 @@ public class SocketManager
 
         return true;
     }
-    public boolean initIn(TCPMessageQueue in, int timeout)
+    public boolean initIn(TCPMessageQueue in, String recFileDir, int timeout)
     {
-        inThread = new InThread(in, PortMap.getInstance().getInPorts(), timeout);
+        inThread = new InThread(in, PortMap.getInstance().getInPorts(), recFileDir, timeout);
         inQueue = in;
         inTimeout = timeout;
 
         return true;
     }
-    public boolean initAll(TCPMessageQueue in, TCPMessageQueue out, int timeout)
+    public boolean initAll(TCPMessageQueue in, TCPMessageQueue out, String recFileDir, int timeout)
     {
         boolean areAllInit = initOut(out, timeout);
-        areAllInit = initIn(in, timeout) && areAllInit;
+        areAllInit = initIn(in, recFileDir, timeout) && areAllInit;
 
         return areAllInit;
     }
@@ -71,9 +71,9 @@ public class SocketManager
 
         return true;
     }
-    public boolean startIn(TCPMessageQueue in, int timeout)
+    public boolean startIn(TCPMessageQueue in, String recFileDir, int timeout)
     {
-        return initIn(in, timeout) && startIn();
+        return initIn(in, recFileDir, timeout) && startIn();
     }
     //attempts to start the out and in threads
     //returns false if any thread problems occurred
@@ -81,12 +81,12 @@ public class SocketManager
     {
         boolean allStarted = startIn();
         allStarted = startOut() && allStarted;
-        System.out.println("All threads started " + allStarted);
+
         return allStarted;
     }
-    public boolean startAll(TCPMessageQueue in, TCPMessageQueue out, int timeout)
+    public boolean startAll(TCPMessageQueue in, TCPMessageQueue out, String recFileDir, int timeout)
     {
-        return initAll(in, out, timeout) && startAll();
+        return initAll(in, out, recFileDir, timeout) && startAll();
     }
 
     //returns true if the thread has initialized
