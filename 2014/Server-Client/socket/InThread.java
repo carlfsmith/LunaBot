@@ -2,7 +2,7 @@
  * Purpose: Monitor all servers and place the messages received
  *              into a TCPMessageQueue.
  * Author:  Alex Anderson
- * Date:    3/9/14
+ * Date:    3/13/14
  */
 
 package socket;
@@ -67,7 +67,11 @@ class InThread extends Thread
                             String msg = sockets[i].getMessage();
 
                             if(protocol.equals(Protocol.fileLine) || protocol.equals(Protocol.fileEnd) || protocol.equals(Protocol.fileStart))
-                                this.writeFileMsg(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));    //write to file
+                            {
+                                boolean success = this.writeFileMsg(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));    //write to file
+                                if(success && protocol.equals(Protocol.fileEnd))
+                                    queue.add(new TCPMessage(sockets[i].getPortInfo().name, Protocol.file, msg));   //signal complete file has been received
+                            }
                             else
                                 queue.add(new TCPMessage(sockets[i].getPortInfo().name, protocol, msg));    //add to the queue
 
@@ -164,7 +168,7 @@ class InThread extends Thread
             }
         }
 
-        return false;   //if we get here the function shouldn't have been called
+        return false;   //if we get here the function shouldn't have been called in the first place
     }
 
     private FileTag getFileTag(PortName name)

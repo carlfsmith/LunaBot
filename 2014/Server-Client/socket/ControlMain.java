@@ -2,8 +2,7 @@
  * Purpose: Demo use of SocketManger, TCPMessage, and
  *              TCPMessageQueue classes by the main thread
  * Author:  Alex Anderson
- * Notes:   Files can now be sent and received automatically.
- * Date:    3/11/14
+ * Date:    3/13/14
  */
 
 package socket;
@@ -39,6 +38,12 @@ public class ControlMain
         System.out.println("Request for file " + in.get());   //what a request for a file looks like
         out.add(new TCPMessage(PortName.ACCEL, Protocol.file, "port_map.csv")); //send file, port_map.csv, on the ACCEL port
         Thread.sleep(timeout*10);      //give more time for the whole file to be sent
+        TCPMessage msg;
+        if(!in.isEmpty());
+        {
+            if(in.peek().getProtocol().equals(Protocol.file))   //did we receive a file?
+                System.out.println("I know a file has successfully been written because " + in.get());
+        }
         System.out.println("Size of in queue = " + in.size());  //queue should be empty file is written in predefined directories
 
         SocketManager.getInstance().interruptAll(); //stop the in/out threads

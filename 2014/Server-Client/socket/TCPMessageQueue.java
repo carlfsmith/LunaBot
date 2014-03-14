@@ -6,7 +6,7 @@
  * Notes:   Calling flush will block execution until complete.
  *              SocketManger's flush functions are preferred
  *              to setting flush directly although both should work.
- * Date:    3/1/14
+ * Date:    3/13/14
  */
 
 package socket;
@@ -42,6 +42,10 @@ public class TCPMessageQueue
         {
             return null;
         }
+    }
+    public synchronized boolean isEmpty()
+    {
+        return msgs.size() == 0;
     }
     public synchronized int size()
     {
