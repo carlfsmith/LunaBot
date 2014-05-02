@@ -2,7 +2,7 @@
  * Purpose: Maintain the protocols used by the system to signal
  *              what kinds of data are needed and sent
  * Author:  Alex Anderson
- * Date:    3/11/14
+ * Date:    5/1/14
  */
 
 package socket;
@@ -12,6 +12,22 @@ public class Protocol
     //Special case message fields
     public static final String empty = "~";
     public static final String request = "?";
+
+    //High level commands from Houston to the robot
+    public static final String shutdown = ":...(";
+    public static final String alive = ":)";
+    public static final String forward = "go";
+    public static final String backup = "come";
+    public static final String lTurn = "lftTrn";
+    public static final String rTurn = "rghtTrn";
+    public static final String dig = "dig";         //can double as a state depending on the context
+    public static final String dump = "dump";       //can double as a state depending on the context
+
+    //robot status
+    public static final String status = "status";
+    public static final String clear = "clear";
+    public static final String obFront = "obFront";
+
 
     //Signals for file transmission
     public static final String file = "file";   //signal that an out thread should send the file in message field
