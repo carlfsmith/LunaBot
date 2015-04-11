@@ -7,32 +7,32 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
 
 # Author: Carl Smith
-# This ROS Node converts Joystick inputs from the joy node
-# into commands for turtlesim
 
-# Receives joystick messages (subscribed to Joy topic)
-# then converts the joysick inputs into Twist commands
-# axis 1 aka left stick vertical controls linear speed
-# axis 0 aka left stick horizonal controls angular speed
 def callback_joy(data):
 	global desiredWheelRotSpeedL
 	global desiredWheelRotSpeedR
 	acc = data.axes[1]
 	turn = data.axes[0]
-	print wheelRotSpeedDx
 	if turn > 0:	#if pressing left
-		if desiredWheelRotSpeedL != -desiredWheelRotSpeedR:
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*acc
+		print 'going left'
+		if desiredWheelRotSpeedL > -desiredWheelRotSpeedR:
+			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*turn
+		elif desiredWheelRotSpeedL < -desiredWheelRotSpeedR:
+			desiredWheelRotSpeedL = -desiredWheelRotSpeedR
 		else:
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*acc
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*acc
+			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*turn
+			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*turn
 	elif turn < 0:	#if pressing right
-		if desiredWheelRotSpeedR != -desiredWheelRotSpeedL:
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*acc
+		print 'going right'
+		if desiredWheelRotSpeedR > -desiredWheelRotSpeedL:
+			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*turn*-1
+		elif desiredWheelRotSpeedR < -desiredWheelRotSpeedL:
+			desiredWheelRotSpeedR = -desiredWheelRotSpeedL
 		else:
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*acc
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*acc
-	else:		#if pressing forward or back
+			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*turn*-1
+			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*turn*-1
+	elif acc > 0 or acc < 0:		#if pressing forward or back
+		print 'going forward or backward'
 		if desiredWheelRotSpeedL < desiredWheelRotSpeedR:
 			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*acc
 		elif desiredWheelRotSpeedR < desiredWheelRotSpeedL:
@@ -83,7 +83,7 @@ def start():
 	v_BR = 0.0
 	desiredWheelRotSpeedL = 0.0
 	desiredWheelRotSpeedR = 0.0
-	wheelRotSpeedDx = 35*math.pi/180
+	wheelRotSpeedDx = 35*math.pi/1000
 	maxRotSpeed = 80
 	UL_wheel = rospy.Publisher('lunabot/UL_wheel', Float64, queue_size=1)
 	UR_wheel = rospy.Publisher('lunabot/UR_wheel', Float64, queue_size=1)
@@ -95,50 +95,50 @@ def start():
 	rospy.Subscriber("/vrep/URMotorData", JointState, callback_UR)
 	rospy.Subscriber("/vrep/BLMotorData", JointState, callback_BL)
 	rospy.Subscriber("/vrep/BRMotorData", JointState, callback_BR)
-	while not rospy.is_shutdown():
-		#slow down ronot to a stop if no control input is detected
-		if desiredWheelRotSpeedL > desiredWheelRotSpeedR and desiredWheelRotSpeedR > wheelRotSpeedDx:
-			#forward right
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*2
-			#print("1\n")
-		elif desiredWheelRotSpeedL > desiredWheelRotSpeedR and desiredWheelRotSpeedL < wheelRotSpeedDx*-1:
-			#reversing left
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*2
-			#print("2\n")
-		elif desiredWheelRotSpeedL < desiredWheelRotSpeedR and desiredWheelRotSpeedL > wheelRotSpeedDx:
-			#turning left
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*2
-			#print("3\n")
-		elif desiredWheelRotSpeedL < desiredWheelRotSpeedR and desiredWheelRotSpeedR < wheelRotSpeedDx*-1:
-			#reverse right
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*2
-			#print("4\n")
-		elif desiredWheelRotSpeedL > wheelRotSpeedDx*2 and desiredWheelRotSpeedR > wheelRotSpeedDx:
-			#using wheelRotSpeedDx because of the deceleration speed: wheelRotSpeedDx*2
-			#going forward
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*2
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*2
-			#print("5\n")
-		elif desiredWheelRotSpeedL < wheelRotSpeedDx*-2 and desiredWheelRotSpeedR < wheelRotSpeedDx*-1:
-			#going in reverse
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*2
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*2
-			#print("6\n")
-		elif desiredWheelRotSpeedL > 0.000001 and desiredWheelRotSpeedR > 0.000001:
-			#same as previous two; handles floating point anomaly
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx
-			#print("7\n" .. desiredWheelRotSpeedL .. "," .. desiredWheelRotSpeedR .. "\n")
-		elif desiredWheelRotSpeedL < -0.000001 and desiredWheelRotSpeedR < -0.000001:
-			#the reverse of the previous else
-			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx
-			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx
-			#print("8\n")
-		else:
-			#settle to stationary
-			desiredWheelRotSpeedL = 0
-			desiredWheelRotSpeedR = 0
-			#print("9\n")
+#	while not rospy.is_shutdown():
+#		#slow down ronot to a stop if no control input is detected
+#		if desiredWheelRotSpeedL > desiredWheelRotSpeedR and desiredWheelRotSpeedR > wheelRotSpeedDx:
+#			#forward right
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*2
+#			#print("1\n")
+#		elif desiredWheelRotSpeedL > desiredWheelRotSpeedR and desiredWheelRotSpeedL < wheelRotSpeedDx*-1:
+#			#reversing left
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*2
+#			#print("2\n")
+#		elif desiredWheelRotSpeedL < desiredWheelRotSpeedR and desiredWheelRotSpeedL > wheelRotSpeedDx:
+#			#turning left
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*2
+#			#print("3\n")
+#		elif desiredWheelRotSpeedL < desiredWheelRotSpeedR and desiredWheelRotSpeedR < wheelRotSpeedDx*-1:
+#			#reverse right
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*2
+#			#print("4\n")
+#		elif desiredWheelRotSpeedL > wheelRotSpeedDx*2 and desiredWheelRotSpeedR > wheelRotSpeedDx:
+#			#using wheelRotSpeedDx because of the deceleration speed: wheelRotSpeedDx*2
+#			#going forward
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx*2
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx*2
+#			#print("5\n")
+#		elif desiredWheelRotSpeedL < wheelRotSpeedDx*-2 and desiredWheelRotSpeedR < wheelRotSpeedDx*-1:
+#			#going in reverse
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx*2
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx*2
+#			#print("6\n")
+#		elif desiredWheelRotSpeedL > 0.000001 and desiredWheelRotSpeedR > 0.000001:
+#			#same as previous two; handles floating point anomaly
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL - wheelRotSpeedDx
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR - wheelRotSpeedDx
+#			#print("7\n" .. desiredWheelRotSpeedL .. "," .. desiredWheelRotSpeedR .. "\n")
+#		elif desiredWheelRotSpeedL < -0.000001 and desiredWheelRotSpeedR < -0.000001:
+#			#the reverse of the previous else
+#			desiredWheelRotSpeedL = desiredWheelRotSpeedL + wheelRotSpeedDx
+#			desiredWheelRotSpeedR = desiredWheelRotSpeedR + wheelRotSpeedDx
+#			#print("8\n")
+#		else:
+#			#settle to stationary
+#			desiredWheelRotSpeedL = 0
+#			desiredWheelRotSpeedR = 0
+#			#print("9\n")
 	rospy.spin()
 
 if __name__ == '__main__':

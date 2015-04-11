@@ -1,8 +1,8 @@
-prefix=/home/carl/catkin_ws/devel
+prefix=/home/carl/LunaBot/2015/catkin_ws/devel
 
 Name: vrep_skeleton_msg_and_srv
 Description: Description of vrep_skeleton_msg_and_srv
 Version: 3.1.2
-Cflags: -I/home/carl/catkin_ws/devel/include
-Libs: -L/home/carl/catkin_ws/devel/lib 
+Cflags: -I/home/carl/LunaBot/2015/catkin_ws/devel/include
+Libs: -L/home/carl/LunaBot/2015/catkin_ws/devel/lib 
 Requires: 

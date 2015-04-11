@@ -67,14 +67,14 @@ set(imu_handler_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("TRUE" STREQUAL "TRUE")
-  set(imu_handler_SOURCE_PREFIX /home/carl/catkin_ws/src/vrep_ros_bridge/imu_handler)
-  set(imu_handler_DEVEL_PREFIX /home/carl/catkin_ws/devel)
+  set(imu_handler_SOURCE_PREFIX /home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/imu_handler)
+  set(imu_handler_DEVEL_PREFIX /home/carl/LunaBot/2015/catkin_ws/devel)
   set(imu_handler_INSTALL_PREFIX "")
   set(imu_handler_PREFIX ${imu_handler_DEVEL_PREFIX})
 else()
   set(imu_handler_SOURCE_PREFIX "")
   set(imu_handler_DEVEL_PREFIX "")
-  set(imu_handler_INSTALL_PREFIX /home/carl/catkin_ws/install)
+  set(imu_handler_INSTALL_PREFIX /home/carl/LunaBot/2015/catkin_ws/install)
   set(imu_handler_PREFIX ${imu_handler_INSTALL_PREFIX})
 endif()
 
@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(imu_handler_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/home/carl/catkin_ws/src/vrep_ros_bridge/imu_handler/include" STREQUAL "")
+if(NOT "/home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/imu_handler/include" STREQUAL "")
   set(imu_handler_INCLUDE_DIRS "")
-  set(_include_dirs "/home/carl/catkin_ws/src/vrep_ros_bridge/imu_handler/include")
+  set(_include_dirs "/home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/imu_handler/include")
   foreach(idir ${_include_dirs})
     if(IS_ABSOLUTE ${idir} AND IS_DIRECTORY ${idir})
       set(include ${idir})
@@ -103,7 +103,7 @@ if(NOT "/home/carl/catkin_ws/src/vrep_ros_bridge/imu_handler/include" STREQUAL "
         message(FATAL_ERROR "Project 'imu_handler' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  Ask the maintainer 'Giovanni Claudio <giovanni.claudio@inria.fr>' to fix it.")
       endif()
     else()
-      message(FATAL_ERROR "Project 'imu_handler' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/carl/catkin_ws/src/vrep_ros_bridge/imu_handler/${idir}'.  Ask the maintainer 'Giovanni Claudio <giovanni.claudio@inria.fr>' to fix it.")
+      message(FATAL_ERROR "Project 'imu_handler' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/imu_handler/${idir}'.  Ask the maintainer 'Giovanni Claudio <giovanni.claudio@inria.fr>' to fix it.")
     endif()
     _list_append_unique(imu_handler_INCLUDE_DIRS ${include})
   endforeach()
@@ -122,7 +122,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/carl/catkin_ws/devel/lib;/home/carl/catkin_ws/devel/lib;/opt/ros/indigo/lib)
+    foreach(path /home/carl/LunaBot/2015/catkin_ws/devel/lib;/home/carl/LunaBot/2015/catkin_ws/devel/lib;/opt/ros/indigo/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
