@@ -1,0 +1,8 @@
+prefix=/home/carl/catkin_ws/devel
+
+Name: vrep_ros_plugin
+Description: Description of vrep_ros_plugin
+Version: 1.0.0
+Cflags: -I/home/carl/catkin_ws/src/vrep_ros_bridge/vrep_ros_plugin/include
+Libs: -L/home/carl/catkin_ws/devel/lib -lv_repExtRosBridge
+Requires: roscpp pluginlib

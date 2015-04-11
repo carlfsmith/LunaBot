@@ -1,0 +1,8 @@
+prefix=/home/carl/catkin_ws/devel
+
+Name: quadrotor_handler
+Description: Description of quadrotor_handler
+Version: 1.0.0
+Cflags: -I/home/carl/catkin_ws/src/vrep_ros_bridge/quadrotor_handler/include
+Libs: -L/home/carl/catkin_ws/devel/lib -lquadrotor_handler
+Requires: roscpp sensor_msgs geometry_msgs vrep_ros_plugin

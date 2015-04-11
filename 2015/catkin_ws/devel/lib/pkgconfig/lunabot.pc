@@ -1,0 +1,8 @@
+prefix=/home/carl/catkin_ws/devel
+
+Name: lunabot
+Description: Description of lunabot
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/carl/catkin_ws/devel/lib 
+Requires: 

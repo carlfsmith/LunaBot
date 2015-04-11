@@ -1,0 +1,8 @@
+prefix=/home/carl/catkin_ws/devel
+
+Name: vrep_joy
+Description: Description of vrep_joy
+Version: 3.1.2
+Cflags: 
+Libs: -L/home/carl/catkin_ws/devel/lib 
+Requires: roscpp joy

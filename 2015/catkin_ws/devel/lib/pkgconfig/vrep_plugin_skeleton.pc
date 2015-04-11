@@ -1,0 +1,8 @@
+prefix=/home/carl/catkin_ws/devel
+
+Name: vrep_plugin_skeleton
+Description: Description of vrep_plugin_skeleton
+Version: 3.1.2
+Cflags: 
+Libs: -L/home/carl/catkin_ws/devel/lib 
+Requires: roscpp rosconsole std_msgs roslib roscpp rosconsole std_msgs

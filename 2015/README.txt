@@ -1,1 +1,0 @@
-This is a text file to help understand the code within the 2015 folder.
