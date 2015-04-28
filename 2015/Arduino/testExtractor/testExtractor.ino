@@ -1,7 +1,8 @@
 #include <Wire.h>
 #define SLAVE_ADDRESS 0x04 // know this will change
 
-//Extractor pins: up, down, on, off, disable
+// Extractor pins: up, down, on, off, disable 
+// Need pin location
 int UP;
 int DOWN;
 int ON;
@@ -74,6 +75,14 @@ void update(){
     // Turn extractor off
     else if(Power == 'f')
       digitalWrite(OFF,HIGH);
+  }
+  else if(Command == ' '){
+    digitalWrite(DIS,HIGH);
+    delay(100);
+    digitalWrite(DOWN,LOW);
+    digitalWrite(UP,LOW);
+    digitalWrite(ON, LOW);
+    digitalWrite(OFF,LOW);
   }
   Previous_Command = Command;
   Previous_Power = Power;
