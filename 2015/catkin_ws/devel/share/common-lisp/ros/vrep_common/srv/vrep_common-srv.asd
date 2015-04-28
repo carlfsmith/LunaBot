@@ -2,7 +2,10 @@
 (cl:in-package :asdf)
 
 (defsystem "vrep_common-srv"
-  :depends-on (:roslisp-msg-protocol :roslisp-utils )
+  :depends-on (:roslisp-msg-protocol :roslisp-utils :geometry_msgs-msg
+               :sensor_msgs-msg
+               :std_msgs-msg
+)
   :components ((:file "_package")
     (:file "simRosReadForceSensor" :depends-on ("_package_simRosReadForceSensor"))
     (:file "_package_simRosReadForceSensor" :depends-on ("_package"))
