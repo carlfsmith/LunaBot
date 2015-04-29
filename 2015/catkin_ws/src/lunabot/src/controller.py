@@ -23,8 +23,8 @@ v_BR = 0.0
 
 #misc
 bin_pos = 0.0
-desiredPWM_L = 127.0
-desiredPWM_R = 127.0
+desiredPWM_L = 0.0
+desiredPWM_R = 0.0
 axis_x = 0.0
 axis_y = 0.0
 button_a = 0
@@ -84,12 +84,12 @@ def move():
 	if l_trigger > 0:	
 		#zero turn left
 		print 'zero left: ',desiredPWM_L," ",desiredPWM_R
-		if desiredPWM_L - PWM_dx > 0:
+		if desiredPWM_L - PWM_dx > -maxPWMval:
 			#decrease
 			desiredPWM_L = desiredPWM_L - PWM_dx * l_trigger
 		else:
 			#settle to min
-			desiredPWM_L = 0
+			desiredPWM_L = -maxPWMval
 		if desiredPWM_R + PWM_dx < maxPWMval:
 			#increase
 			desiredPWM_R = desiredPWM_R + PWM_dx * l_trigger
@@ -99,12 +99,12 @@ def move():
 	elif r_trigger > 0:	
 		#zero turn right
 		print 'zero right: ',desiredPWM_L," ",desiredPWM_R
-		if desiredPWM_R - PWM_dx > 0:
+		if desiredPWM_R - PWM_dx > -maxPWMval:
 			#decrease
 			desiredPWM_R = desiredPWM_R - PWM_dx * r_trigger
 		else:
 			#settle to min
-			desiredPWM_R = 0
+			desiredPWM_R = -maxPWMval
 		if desiredPWM_L + PWM_dx < maxPWMval:
 			#increase
 			desiredPWM_L = desiredPWM_L + PWM_dx * r_trigger
@@ -114,40 +114,40 @@ def move():
 	elif axis_y > 0 or axis_y < 0:
 		#if pressing forward or back
 		print 'going forward or backward: ',desiredPWM_L," ",desiredPWM_R
-		if ((desiredPWM_L + PWM_dx * axis_y) > 0) and ((desiredPWM_L + PWM_dx * axis_y) < maxPWMval):
+		if ((desiredPWM_L + PWM_dx * axis_y) > -maxPWMval) and ((desiredPWM_L + PWM_dx * axis_y) < maxPWMval):
 			#increase or decrease
 			desiredPWM_L = desiredPWM_L + PWM_dx * axis_y
 		else:
 			#settle to max or min
-			desiredPWM_L = maxPWMval/2.0 + (maxPWMval/2.0) * axis_y/abs(axis_y)
-		if ((desiredPWM_R + PWM_dx * axis_y) > 0) and ((desiredPWM_R + PWM_dx * axis_y) < maxPWMval):
+			desiredPWM_L = maxPWMval * axis_y/abs(axis_y)
+		if ((desiredPWM_R + PWM_dx * axis_y) > -maxPWMval) and ((desiredPWM_R + PWM_dx * axis_y) < maxPWMval):
 			#increase or decrease
 			desiredPWM_R = desiredPWM_R + PWM_dx * axis_y
 		else:
 			#set value to max or min
-			desiredPWM_R = maxPWMval/2.0 + (maxPWMval/2.0) * axis_y/abs(axis_y)
+			desiredPWM_R = maxPWMval * axis_y/abs(axis_y)
 	else:
 		print 'no input.. ',desiredPWM_L," ",desiredPWM_R
-		#slow down left wheels to stop (maxPWMval/2 is stationary value)
-		if desiredPWM_L - PWM_dx > maxPWMval/2.0:	#if was going forward 
+		#slow down left wheels to stop (0.0 is stationary value)
+		if desiredPWM_L - PWM_dx > 0.0:	#if was going forward 
 			#decrease
 			desiredPWM_L = desiredPWM_L - PWM_dx
-		elif desiredPWM_L + PWM_dx < maxPWMval/2.0:		#if was reversing
+		elif desiredPWM_L + PWM_dx < 0.0:		#if was reversing
 			#increase
 			desiredPWM_L = desiredPWM_L + PWM_dx
 		else:
 			#settle to mid
-			desiredPWM_L = maxPWMval/2.0
+			desiredPWM_L = 0.0
 		#slow down right wheels to stop
-		if desiredPWM_R - PWM_dx > maxPWMval/2.0:
+		if desiredPWM_R - PWM_dx > 0.0:
 			#decrease
 			desiredPWM_R = desiredPWM_R - PWM_dx
-		elif desiredPWM_R + PWM_dx < maxPWMval/2.0:
+		elif desiredPWM_R + PWM_dx < 0.0:
 			#increase
 			desiredPWM_R = desiredPWM_R + PWM_dx
 		else:
 			#settle to mid
-			desiredPWM_R = maxPWMval/2.0
+			desiredPWM_R = 0.0
 	#excavator and bin movement
 	global bin_pos
 	global counter
