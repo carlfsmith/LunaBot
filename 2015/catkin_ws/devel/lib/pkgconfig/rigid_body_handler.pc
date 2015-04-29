@@ -1,8 +1,0 @@
-prefix=/home/carl/LunaBot/2015/catkin_ws/devel
-
-Name: rigid_body_handler
-Description: Description of rigid_body_handler
-Version: 1.0.0
-Cflags: -I/home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/rigid_body_handler/include
-Libs: -L/home/carl/LunaBot/2015/catkin_ws/devel/lib -lrigid_body_handler
-Requires: roscpp geometry_msgs vrep_ros_plugin

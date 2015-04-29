@@ -1,8 +1,0 @@
-prefix=/home/carl/LunaBot/2015/catkin_ws/devel
-
-Name: manipulator_handler
-Description: Description of manipulator_handler
-Version: 1.0.0
-Cflags: -I/home/carl/LunaBot/2015/catkin_ws/src/vrep_ros_bridge/manipulator_handler/include
-Libs: -L/home/carl/LunaBot/2015/catkin_ws/devel/lib -lmanipulator_handler
-Requires: roscpp sensor_msgs vrep_ros_plugin
