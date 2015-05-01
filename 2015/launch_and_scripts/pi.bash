@@ -2,13 +2,13 @@
 
 echo "running all nodes..."
 
-#echo "starting controller..."
-#rosrun beginner_tutorals control.py
-#echo "controller started..."
+echo "starting controller..."
+rosrun beginner_tutorals control.py
+echo "controller started..."
 
-#echo "starting converter..."
-#rosrun beginner_tutorals control_to_robot.py
-#echo "converter started..."
+echo "starting converter..."
+rosrun beginner_tutorals control_to_robot.py
+echo "converter started..."
 
 echo "starting bin..."
 rosrun beginner_tutorals bin.py
