@@ -8,13 +8,6 @@ from std_msgs.msg import Float64
 
 # Author: Carl Smith
 
-#create publishers
-UL_wheel = rospy.Publisher('lunabot/UL_wheel', Float64, queue_size=1)
-UR_wheel = rospy.Publisher('lunabot/UR_wheel', Float64, queue_size=1)
-BL_wheel = rospy.Publisher('lunabot/BL_wheel', Float64, queue_size=1)
-BR_wheel = rospy.Publisher('lunabot/BR_wheel', Float64, queue_size=1)
-Bin_motor = rospy.Publisher('lunabot/Bin_motor', Float64, queue_size=1)
-
 #initialize rotary encoder values
 v_UL = 0.0
 v_UR = 0.0
@@ -41,6 +34,10 @@ r_trigger = 0.0
 maxPWMval = 255.0	#pwm range is (0 - 255) forward or reverse
 PWM_dx = maxPWMval/5.0
 counter = 0
+stop_flag_UL = False
+stop_flag_UR = False
+stop_flag_BL = False
+stop_flag_BR = False
 
 #callback functions
 def callback_joy(data):
@@ -62,25 +59,87 @@ def callback_joy(data):
 	if r_trigger != 0.5 and r_trig_ready == False:
 		r_trig_ready = True
 	
-def callback_UL(data):
+def callback_wEncoder_UL(data):
 	global v_UL
 	v_UL = data.velocity[0]
 	#print "in UL", v_UL
 
-def callback_UR(data):
+def callback_wEncoder_UR(data):
 	global v_UR
 	v_UR = data.velocity[0]
 	#print "in UR", v_UR
 
-def callback_BL(data):
+def callback_wEncoder_BL(data):
 	global v_BL
 	v_BL = data.velocity[0]
 	#print "in BL", v_BL
 
-def callback_BR(data):
+def callback_wEncoder_BR(data):
 	global v_BR
 	v_BR = data.velocity[0]
 	#print "in BR", v_BR
+
+def callback_IR_UL(proximity):
+	global stop_flag_UL
+	if distance(proximity.data) < 0.5:
+		stop_flag = True
+	else:
+		stop_flag = False
+
+def callback_IR_UR(proximity):
+	global stop_flag_UR
+	if distance(proximity.data) < 0.5:
+		stop_flag = True
+	else:
+		stop_flag = False
+
+def callback_IR_BL(proximity):
+	global stop_flag_BL
+	if distance(proximity.data) < 0.5:
+		stop_flag = True
+	else:
+		stop_flag = False
+
+def callback_IR_BR(proximity):
+	global stop_flag_BR
+	if distance(proximity.data) < 0.5:
+		stop_flag = True
+	else:
+		stop_flag = False
+
+#finds distance given IR proximity reading
+def distance(proximity):
+	d1 = proximity * math.cos(math.radians(10.0))	#distance projected directly forward-down
+	d2 = proximity * math.cos(math.radians(82.0))	#height of sensor
+	distance = math.sqrt(d1*d1 + d2*d2)	#direct forward distance
+	print proximity," ",d1," ",d2," ",distance
+	return distance
+
+#handles slowing down to stop
+def stop():
+	global desiredPWM_L
+	global desiredPWM_R
+
+	#slow down left wheels to stop (0.0 is stationary value)
+	if desiredPWM_L - PWM_dx > 0:		#if robot was going forward 
+		#decrease
+		desiredPWM_L = desiredPWM_L - PWM_dx
+	elif desiredPWM_L + PWM_dx < 0:		#if robot was reversing
+		#increase
+		desiredPWM_L = desiredPWM_L + PWM_dx
+	else:
+		#settle to mid
+		desiredPWM_L = 0.0
+	#slow down right wheels to stop
+	if desiredPWM_R - PWM_dx > 0:		#if robot was going forward 
+		#decrease
+		desiredPWM_R = desiredPWM_R - PWM_dx
+	elif desiredPWM_R + PWM_dx < 0:		#if robot was reversing
+		#increase
+		desiredPWM_R = desiredPWM_R + PWM_dx
+	else:
+		#settle to mid
+		desiredPWM_R = 0.0
 
 #handles movement changes
 def move():
@@ -94,7 +153,7 @@ def move():
 	#wheel movement
 	if l_trigger > 0.05 and l_trig_ready == True:	
 		#zero turn left
-		print 'zero left: ',desiredPWM_L," ",desiredPWM_R," ",l_trigger
+		#print 'zero left: ',desiredPWM_L," ",desiredPWM_R," ",l_trigger
 		if desiredPWM_L - PWM_dx > -maxPWMval:
 			#decrease
 			desiredPWM_L = desiredPWM_L - PWM_dx * l_trigger
@@ -109,7 +168,7 @@ def move():
 			desiredPWM_R = maxPWMval
 	elif r_trigger > 0.05 and r_trig_ready == True:	
 		#zero turn right
-		print 'zero right: ',desiredPWM_L," ",desiredPWM_R," ",r_trigger
+		#print 'zero right: ',desiredPWM_L," ",desiredPWM_R," ",r_trigger
 		if desiredPWM_R - maxPWMval > -maxPWMval:
 			#decrease
 			desiredPWM_R = desiredPWM_R - PWM_dx * r_trigger
@@ -124,7 +183,7 @@ def move():
 			desiredPWM_L = maxPWMval
 	elif axis_y > 0.05 or axis_y < -0.05:
 		#if pressing forward or back
-		print 'going forward or backward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+		#print 'going forward or backward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
 		if ((desiredPWM_L + PWM_dx * axis_y) > -maxPWMval) and ((desiredPWM_L + PWM_dx * axis_y) < maxPWMval):
 			#increase or decrease
 			desiredPWM_L = desiredPWM_L + PWM_dx * axis_y
@@ -138,27 +197,8 @@ def move():
 			#set value to max or min
 			desiredPWM_R = maxPWMval * axis_y/abs(axis_y)
 	else:
-		print 'no input.. ',desiredPWM_L," ",desiredPWM_R
-		#slow down left wheels to stop (0.0 is stationary value)
-		if desiredPWM_L - PWM_dx > 0:		#if was going forward 
-			#decrease
-			desiredPWM_L = desiredPWM_L - PWM_dx
-		elif desiredPWM_L + PWM_dx < 0:	#if was reversing
-			#increase
-			desiredPWM_L = desiredPWM_L + PWM_dx
-		else:
-			#settle to mid
-			desiredPWM_L = 0.0
-		#slow down right wheels to stop
-		if desiredPWM_R - PWM_dx > 0:
-			#decrease
-			desiredPWM_R = desiredPWM_R - PWM_dx
-		elif desiredPWM_R + PWM_dx < 0:
-			#increase
-			desiredPWM_R = desiredPWM_R + PWM_dx
-		else:
-			#settle to mid
-			desiredPWM_R = 0.0
+		#print 'no input.. ',desiredPWM_L," ",desiredPWM_R
+		stop()
 	#excavator and bin movement
 	global bin_pos
 	global counter
@@ -179,11 +219,23 @@ def move():
 #main---------------------------------------------------
 if __name__ == '__main__':
 	rospy.init_node('controller')
+	#publish wheel pwm information
+	UL_wheel = rospy.Publisher('lunabot/UL_wheel', Float64, queue_size=1)
+	UR_wheel = rospy.Publisher('lunabot/UR_wheel', Float64, queue_size=1)
+	BL_wheel = rospy.Publisher('lunabot/BL_wheel', Float64, queue_size=1)
+	BR_wheel = rospy.Publisher('lunabot/BR_wheel', Float64, queue_size=1)
+	Bin_motor = rospy.Publisher('lunabot/Bin_motor', Float64, queue_size=1)
+	#subscribe to joystick, vrep wheel jointstate and IR proximity information 
 	rospy.Subscriber("joy", Joy, callback_joy)
-	rospy.Subscriber("/vrep/ULMotorData", JointState, callback_UL)
-	rospy.Subscriber("/vrep/URMotorData", JointState, callback_UR)
-	rospy.Subscriber("/vrep/BLMotorData", JointState, callback_BL)
-	rospy.Subscriber("/vrep/BRMotorData", JointState, callback_BR)
+	rospy.Subscriber("/vrep/ULMotorData", JointState, callback_wEncoder_UL)
+	rospy.Subscriber("/vrep/URMotorData", JointState, callback_wEncoder_UR)
+	rospy.Subscriber("/vrep/BLMotorData", JointState, callback_wEncoder_BL)
+	rospy.Subscriber("/vrep/BRMotorData", JointState, callback_wEncoder_BR)
+	rospy.Subscriber("lunabot/UL_IR", Float64, callback_IR_UL)
+	rospy.Subscriber("lunabot/UR_IR", Float64, callback_IR_UR)
+	rospy.Subscriber("lunabot/BL_IR", Float64, callback_IR_BL)
+	rospy.Subscriber("lunabot/BR_IR", Float64, callback_IR_BR)
+	#set loop rate and main loop
 	rate = rospy.Rate(10) # 10hz
 	rate.sleep()
 	while not rospy.is_shutdown():
