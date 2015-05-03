@@ -34,10 +34,8 @@ r_trigger = 0.0
 maxPWMval = 255.0	#pwm range is (0 - 255) forward or reverse
 PWM_dx = maxPWMval/5.0
 counter = 0
-stop_flag_UL = False
-stop_flag_UR = False
-stop_flag_BL = False
-stop_flag_BR = False
+stop_flag_F = False
+stop_flag_B = False
 
 #callback functions
 def callback_joy(data):
@@ -82,30 +80,30 @@ def callback_wEncoder_BR(data):
 def callback_IR_UL(proximity):
 	global stop_flag_UL
 	if distance(proximity.data) < 0.5:
-		stop_flag = True
+		stop_flag_F = True
 	else:
-		stop_flag = False
+		stop_flag_F = False
 
 def callback_IR_UR(proximity):
 	global stop_flag_UR
 	if distance(proximity.data) < 0.5:
-		stop_flag = True
+		stop_flag_F = True
 	else:
-		stop_flag = False
+		stop_flag_F = False
 
 def callback_IR_BL(proximity):
 	global stop_flag_BL
 	if distance(proximity.data) < 0.5:
-		stop_flag = True
+		stop_flag_B = True
 	else:
-		stop_flag = False
+		stop_flag_B = False
 
 def callback_IR_BR(proximity):
 	global stop_flag_BR
 	if distance(proximity.data) < 0.5:
-		stop_flag = True
+		stop_flag_B = True
 	else:
-		stop_flag = False
+		stop_flag_B = False
 
 #finds distance given IR proximity reading
 def distance(proximity):
@@ -154,48 +152,63 @@ def move():
 	if l_trigger > 0.05 and l_trig_ready == True:	
 		#zero turn left
 		#print 'zero left: ',desiredPWM_L," ",desiredPWM_R," ",l_trigger
-		if desiredPWM_L - PWM_dx > -maxPWMval:
+		if desiredPWM_L - PWM_dx > -maxPWMval * l_trigger:
 			#decrease
-			desiredPWM_L = desiredPWM_L - PWM_dx * l_trigger
+			desiredPWM_L = desiredPWM_L - PWM_dx
 		else:
 			#settle to min
-			desiredPWM_L = -maxPWMval
-		if desiredPWM_R + PWM_dx < maxPWMval:
+			desiredPWM_L = -maxPWMval * l_trigger
+		if desiredPWM_R + PWM_dx < maxPWMval * l_trigger:
 			#increase
-			desiredPWM_R = desiredPWM_R + PWM_dx * l_trigger
+			desiredPWM_R = desiredPWM_R + PWM_dx
 		else:
 			#settle to max
-			desiredPWM_R = maxPWMval
+			desiredPWM_R = maxPWMval * l_trigger
 	elif r_trigger > 0.05 and r_trig_ready == True:	
 		#zero turn right
 		#print 'zero right: ',desiredPWM_L," ",desiredPWM_R," ",r_trigger
-		if desiredPWM_R - maxPWMval > -maxPWMval:
+		if desiredPWM_R - PWM_dx > -maxPWMval * r_trigger:
 			#decrease
-			desiredPWM_R = desiredPWM_R - PWM_dx * r_trigger
+			desiredPWM_R = desiredPWM_R - PWM_dx
 		else:
 			#settle to min
-			desiredPWM_R = -maxPWMval
-		if desiredPWM_L + PWM_dx < maxPWMval:
+			desiredPWM_R = -maxPWMval * r_trigger
+		if desiredPWM_L + PWM_dx < maxPWMval * r_trigger:
 			#increase
-			desiredPWM_L = desiredPWM_L + PWM_dx * r_trigger
+			desiredPWM_L = desiredPWM_L + PWM_dx
 		else:
 			#settle to max
+			desiredPWM_L = maxPWMval * r_trigger
+	elif axis_y > 0.05 and stop_flag_F == False:
+		#if pressing forward
+		#print 'going forward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+		if desiredPWM_L + PWM_dx < maxPWMval * axis_y:
+			#increase left wheels
+			desiredPWM_L = desiredPWM_L + PWM_dx
+		else:
+			#settle left wheels
 			desiredPWM_L = maxPWMval
-	elif axis_y > 0.05 or axis_y < -0.05:
-		#if pressing forward or back
-		#print 'going forward or backward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
-		if ((desiredPWM_L + PWM_dx * axis_y) > -maxPWMval) and ((desiredPWM_L + PWM_dx * axis_y) < maxPWMval):
-			#increase or decrease
-			desiredPWM_L = desiredPWM_L + PWM_dx * axis_y
+		if desiredPWM_R + PWM_dx < maxPWMval * axis_y:
+			#increase right wheels
+			desiredPWM_R = desiredPWM_R + PWM_dx
 		else:
-			#settle to max or min
-			desiredPWM_L = maxPWMval * axis_y/abs(axis_y)
-		if ((desiredPWM_R + PWM_dx * axis_y) > -maxPWMval) and ((desiredPWM_R + PWM_dx * axis_y) < maxPWMval):
-			#increase or decrease
-			desiredPWM_R = desiredPWM_R + PWM_dx * axis_y
+			#settle right wheels
+			desiredPWM_R = maxPWMval
+	elif axis_y < -0.05 and stop_flag_B == False:
+		#if pressing back
+		#print 'going backward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+		if desiredPWM_L - PWM_dx > maxPWMval * axis_y:
+			#decrease left wheels
+			desiredPWM_L = desiredPWM_L - PWM_dx
 		else:
-			#set value to max or min
-			desiredPWM_R = maxPWMval * axis_y/abs(axis_y)
+			#settle left wheels
+			desiredPWM_L = -maxPWMval
+		if desiredPWM_R - PWM_dx > maxPWMval * axis_y:
+			#decrease right wheels
+			desiredPWM_R = desiredPWM_R - PWM_dx
+		else:
+			#settle right wheels
+			desiredPWM_R = -maxPWMval
 	else:
 		#print 'no input.. ',desiredPWM_L," ",desiredPWM_R
 		stop()
