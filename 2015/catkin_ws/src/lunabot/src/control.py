@@ -8,18 +8,21 @@ from std_msgs.msg import Float64
 
 # Author: Carl Smith
 
-#initialize rotary encoder values
-v_UL = 0.0
-v_UR = 0.0
-v_BL = 0.0
-v_BR = 0.0
+#initialize rotary encoder values: UL, UR, BL, BR
+v_wEncoder = [0.0] * 4
 
 #handle joy initializing triggers to 0 instead of 1.0 (the release value)
 l_trig_ready = False
 r_trig_ready = False
 
+#initialize IR flag values: front, back
+stop_flag_F = False
+stop_flag_B = False
+
 #misc
 bin_pos = 0.0
+ex_pos = 0.09
+buck_vel = 0.0
 desiredPWM_L = 0.0
 desiredPWM_R = 0.0
 axis_x = 0.0
@@ -32,10 +35,15 @@ buttons = [0] * 11
 l_trigger = 0.0		
 r_trigger = 0.0
 maxPWMval = 255.0	#pwm range is (0 - 255) forward or reverse
+<<<<<<< HEAD
+PWM_dx = maxPWMval/10.0
+counter = [0] * 3	#button counters for B, Y, X
+=======
 PWM_dx = maxPWMval/5.0
 counter = 0
 stop_flag_F = False
 stop_flag_B = False
+>>>>>>> origin/master
 
 #callback functions
 def callback_joy(data):
@@ -58,48 +66,59 @@ def callback_joy(data):
 		r_trig_ready = True
 	
 def callback_wEncoder_UL(data):
-	global v_UL
-	v_UL = data.velocity[0]
-	#print "in UL", v_UL
+	global v_wEncoder
+	v_wEncoder[0] = data.velocity[0] * 100
+	#print "in UL", v_wEncoder[0]
 
 def callback_wEncoder_UR(data):
-	global v_UR
-	v_UR = data.velocity[0]
-	#print "in UR", v_UR
+	global v_wEncoder
+	v_wEncoder[1] = data.velocity[0] * 100
+	#print "in UR", v_wEncoder[1]
 
 def callback_wEncoder_BL(data):
-	global v_BL
-	v_BL = data.velocity[0]
-	#print "in BL", v_BL
+	global v_wEncoder
+	v_wEncoder[2] = data.velocity[0] * 100
+	#print "in BL", v_wEncoder[2]
 
 def callback_wEncoder_BR(data):
-	global v_BR
-	v_BR = data.velocity[0]
-	#print "in BR", v_BR
+	global v_wEncoder
+	v_wEncoder[3] = data.velocity[0] * 100
+	#print "in BR", v_wEncoder[3]
 
 def callback_IR_UL(proximity):
+<<<<<<< HEAD
+	global stop_flag_F
+	if distance(proximity.data) < 1.0:
+=======
 	global stop_flag_UL
 	if distance(proximity.data) < 0.5:
+>>>>>>> origin/master
 		stop_flag_F = True
 	else:
 		stop_flag_F = False
 
 def callback_IR_UR(proximity):
+<<<<<<< HEAD
+	global stop_flag_F
+	if distance(proximity.data) < 1.0:
+=======
 	global stop_flag_UR
 	if distance(proximity.data) < 0.5:
+>>>>>>> origin/master
 		stop_flag_F = True
 	else:
 		stop_flag_F = False
 
 def callback_IR_BL(proximity):
-	global stop_flag_BL
+	global stop_flag_B
 	if distance(proximity.data) < 0.5:
 		stop_flag_B = True
 	else:
 		stop_flag_B = False
 
 def callback_IR_BR(proximity):
-	global stop_flag_BR
+	global stop_flag_B
+	#print distance(proximity.data)
 	if distance(proximity.data) < 0.5:
 		stop_flag_B = True
 	else:
@@ -110,7 +129,7 @@ def distance(proximity):
 	d1 = proximity * math.cos(math.radians(10.0))	#distance projected directly forward-down
 	d2 = proximity * math.cos(math.radians(82.0))	#height of sensor
 	distance = math.sqrt(d1*d1 + d2*d2)	#direct forward distance
-	print proximity," ",d1," ",d2," ",distance
+	#print proximity," ",d1," ",d2," ",distance
 	return distance
 
 #handles slowing down to stop
@@ -181,12 +200,35 @@ def move():
 			desiredPWM_L = maxPWMval * r_trigger
 	elif axis_y > 0.05 and stop_flag_F == False:
 		#if pressing forward
+<<<<<<< HEAD
+		print 'going forward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+=======
 		#print 'going forward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+>>>>>>> origin/master
 		if desiredPWM_L + PWM_dx < maxPWMval * axis_y:
 			#increase left wheels
 			desiredPWM_L = desiredPWM_L + PWM_dx
 		else:
 			#settle left wheels
+<<<<<<< HEAD
+			desiredPWM_L = maxPWMval * axis_y
+		if desiredPWM_R + PWM_dx < maxPWMval * axis_y:
+			#increase right wheels
+			desiredPWM_R = desiredPWM_R + PWM_dx
+		else:
+			#settle right wheels
+			desiredPWM_R = maxPWMval * axis_y
+	elif axis_y < -0.05 and stop_flag_B == False:
+		#print stop_flag_B
+		#if pressing back
+		print 'going backward: ',desiredPWM_L," ",desiredPWM_R," ",axis_y
+		if desiredPWM_L - PWM_dx > maxPWMval * axis_y:
+			#decrease left wheels
+			desiredPWM_L = desiredPWM_L - PWM_dx
+		else:
+			#settle left wheels
+			desiredPWM_L = maxPWMval * axis_y
+=======
 			desiredPWM_L = maxPWMval
 		if desiredPWM_R + PWM_dx < maxPWMval * axis_y:
 			#increase right wheels
@@ -203,31 +245,69 @@ def move():
 		else:
 			#settle left wheels
 			desiredPWM_L = -maxPWMval
+>>>>>>> origin/master
 		if desiredPWM_R - PWM_dx > maxPWMval * axis_y:
 			#decrease right wheels
 			desiredPWM_R = desiredPWM_R - PWM_dx
 		else:
 			#settle right wheels
+<<<<<<< HEAD
+			desiredPWM_R = maxPWMval * axis_y
+=======
 			desiredPWM_R = -maxPWMval
+>>>>>>> origin/master
 	else:
 		#print 'no input.. ',desiredPWM_L," ",desiredPWM_R
 		stop()
-	#excavator and bin movement
+
+	#bin movement
 	global bin_pos
 	global counter
 	#after rate*5 seconds, button can be pressed again
-	if counter % 5 == 0:
-		counter = 0
-	#pressing B alternates target position
-	if button_b == 1 and counter == 0:
+	if counter[0] % 5 == 0:
+		counter[0] = 0
+	#pressing B alternates bin joint position
+	if button_b == 1 and counter[0] == 0:
 		print "pressed button B: ",bin_pos
 		if bin_pos == 0.0:
 			bin_pos = 0.09
 		elif bin_pos == 0.09:
 			bin_pos = 0.0
-		counter = 1
-	elif counter != 0:
-		counter = counter + 1
+		counter[0] = 1
+	elif counter[0] != 0:
+		counter[0] = counter[0] + 1
+
+	#excavator linear actuator movement
+	global ex_pos
+	#after rate*5 seconds, button can be pressed again
+	if counter[1] % 5 == 0:
+		counter[1] = 0
+	#pressing Y alternates excavator joint position
+	if button_y == 1 and counter[1] == 0:
+		print "pressed button Y: ",ex_pos
+		if ex_pos == 0.0:
+			ex_pos = 0.09
+		elif ex_pos == 0.09:
+			ex_pos = 0.0
+		counter[1] = 1
+	elif counter[1] != 0:
+		counter[1] = counter[1] + 1
+
+	#excavator bucket movement
+	global buck_vel
+	#after rate*5 seconds, button can be pressed again
+	if counter[2] % 5 == 0:
+		counter[2] = 0
+	#pressing Y alternates excavator joint position
+	if button_x == 1 and counter[2] == 0:
+		print "pressed button X: ",buck_vel
+		if buck_vel == 0.0:
+			buck_vel = 2.1248	#Theta = (velocity * time)/gear_radius, from V-rep model
+		elif buck_vel == 2.1248:	#2.1248 = (0.16 * 1)/0.0753
+			buck_vel = 0.0		
+		counter[2] = 1
+	elif counter[2] != 0:
+		counter[2] = counter[2] + 1
 			
 #main---------------------------------------------------
 if __name__ == '__main__':
@@ -238,6 +318,8 @@ if __name__ == '__main__':
 	BL_wheel = rospy.Publisher('lunabot/BL_wheel', Float64, queue_size=1)
 	BR_wheel = rospy.Publisher('lunabot/BR_wheel', Float64, queue_size=1)
 	Bin_motor = rospy.Publisher('lunabot/Bin_motor', Float64, queue_size=1)
+	Ex_motor = rospy.Publisher('lunabot/Ex_motor', Float64, queue_size=1)
+	Bucket_motor = rospy.Publisher('lunabot/Bucket_motor', Float64, queue_size=1)
 	#subscribe to joystick, vrep wheel jointstate and IR proximity information 
 	rospy.Subscriber("joy", Joy, callback_joy)
 	rospy.Subscriber("/vrep/ULMotorData", JointState, callback_wEncoder_UL)
@@ -258,5 +340,7 @@ if __name__ == '__main__':
 		BL_wheel.publish(desiredPWM_L)
 		BR_wheel.publish(desiredPWM_R)
 		Bin_motor.publish(bin_pos)
+		Ex_motor.publish(ex_pos)
+		Bucket_motor.publish(buck_vel)
 		rate.sleep()
 	rospy.spin()
