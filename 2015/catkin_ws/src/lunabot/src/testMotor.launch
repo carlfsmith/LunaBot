@@ -1,5 +1,0 @@
-<launch>
-   <param name= "joy_node/dev1" value= "/dev/input/js0" />
-   <node pkg="joy" name="joy" type="joy_node"/>
-   <node pkg="razorbot" name="testMotor" type="testMotor.py"/>
-</launch>
